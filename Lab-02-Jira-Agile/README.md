@@ -1,12 +1,18 @@
-# Lab 2: Jira Agile — Backlog Creation, Story Point Estimation & Sprint Execution
-
-**Project:** Digital Campus Library Reservation Gateway
+# Lab 2: Jira Agile Backlog, Story Point Estimation and Sprint Execution
 
 ## Objective
-Convert assigned functional use case into an Agile backlog, estimate user stories with Fibonacci points, prioritize stories, plan Sprint 1, execute the sprint on the Jira Scrum Board, and analyze sprint velocity using the Burndown Chart.
 
-## Team Deliverables Directory
-- `PES1UG24AM428/` — Dharshini V (`EPIC-01: Overdue Fine Payment & Settlement`, UC-04) 
-- `PES1UG24AM084/` — Collaborator 1 
-- `PES1UG24AM094/` — Collaborator 2 
-- `PES1UG24AM087/` — Collaborator 3 
+Convert the assigned use case into an Agile backlog, estimate user stories, prioritize the backlog, plan a sprint, execute the sprint on a Jira Scrum board, and analyze sprint progress.
+
+## Team Deliverables
+
+| SRN | Deliverables |
+| :--- | :--- |
+| PES1UG24AM087 | `PES1UG24AM087.docx` |
+| PES1UG24AM428 | Individual Lab 2 deliverables |
+| PES1UG24AM084 | Individual Lab 2 deliverables |
+| PES1UG24AM094 | Individual Lab 2 deliverables |
+
+## PES1UG24AM087 Files
+
+- `PES1UG24AM087/PES1UG24AM087.docx`

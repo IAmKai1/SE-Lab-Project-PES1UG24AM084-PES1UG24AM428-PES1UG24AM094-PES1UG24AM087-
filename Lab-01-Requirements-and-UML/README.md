@@ -1,13 +1,19 @@
-# Lab 1: Requirements Engineering & UML Use-Case Modelling
-
-**Problem Statement #08:** Campus & Academic Operations — Digital Campus Library Reservation Gateway
+# Lab 1: Requirements Engineering and UML Use-Case Modelling
 
 ## Objective
-Convert customer requirements into functional and non-functional requirements tables, identify core use cases, write detailed use-case flow specifications, and model UML Use-Case Diagrams.
 
-## Team Deliverables Directory
-Each teammate should store their assigned use case in their corresponding folder:
-- `PES1UG24AM428/` — Dharshini V (Assigned: `UC-04: Pay Overdue Fine`) 
-- `PES1UG24AM084/` — Collaborator 1 
-- `PES1UG24AM094/` — Collaborator 2 
-- `PES1UG24AM087/` — Collaborator 3 
+Convert customer requirements into functional and non-functional requirements, identify core use cases, write detailed use-case flow specifications, and model the system using UML use-case diagrams.
+
+## Team Deliverables
+
+| SRN | Deliverables |
+| :--- | :--- |
+| PES1UG24AM087 | `Requirements_Table.docx`, `UseCase_Flow_PlaceHoldRequest.docx` |
+| PES1UG24AM428 | Individual Lab 1 deliverables |
+| PES1UG24AM084 | Individual Lab 1 deliverables |
+| PES1UG24AM094 | Individual Lab 1 deliverables |
+
+## PES1UG24AM087 Files
+
+- `PES1UG24AM087/Requirements_Table.docx`
+- `PES1UG24AM087/UseCase_Flow_PlaceHoldRequest.docx`

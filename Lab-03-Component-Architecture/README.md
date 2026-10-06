@@ -1,10 +1,18 @@
-# Lab 3: Component Modelling & Architecture
+# Lab 3: Component Modelling and Architecture
 
 ## Objective
-Select an architectural style appropriate for the given problem system, justify the architecture selection based on quality attributes (modifiability, separation of concerns, security, performance), and design a complete UML Component Diagram using ball-and-socket notation.
 
-## Team Deliverables Directory
-- `PES1UG24AM428/` — Dharshini V (Self-Service Coffee Kiosk System — Layered Architecture) 
-- `PES1UG24AM084/` — Collaborator 1 
-- `PES1UG24AM094/` — Collaborator 2 
-- `PES1UG24AM087/` — Collaborator 3 
+Select a suitable architectural style for the assigned system, justify the architecture based on quality attributes, and design a UML component diagram.
+
+## Team Deliverables
+
+| SRN | Deliverables |
+| :--- | :--- |
+| PES1UG24AM087 | `PES1UG24AM087.pdf` |
+| PES1UG24AM428 | Individual Lab 3 deliverables |
+| PES1UG24AM084 | Individual Lab 3 deliverables |
+| PES1UG24AM094 | Individual Lab 3 deliverables |
+
+## PES1UG24AM087 Files
+
+- `PES1UG24AM087/PES1UG24AM087.pdf`
