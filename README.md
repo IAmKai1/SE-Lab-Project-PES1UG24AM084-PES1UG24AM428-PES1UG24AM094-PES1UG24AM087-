@@ -2,15 +2,14 @@
 
 Collaborative repository for Software Engineering Lab (SE Lab) group deliverables.
 
-## 👥 Team Members
+## Team Members
 
-| Student Name | SRN | Assigned Use Case / Role | Status |
-| :--- | :--- | :--- | :--- |
-| **Dharshini V** | **PES1UG24AM428** | UC-04: Pay Overdue Fine (Labs 1 & 2), Coffee Kiosk (Lab 3) | ✅ Labs 1, 2, 3 Uploaded |
-| Collaborator 1 | **PES1UG24AM084** | Group Partner | ⏳ Pending Submission |
-| Collaborator 2 | **PES1UG24AM094** | Group Partner | ⏳ Pending Submission |
-| Collaborator 3 | **PES1UG24AM087** | Group Partner | ⏳ Pending Submission |
-
+| Student Name | SRN | Assigned Use Case / Role |
+| :--- | :--- | :--- |
+| **Dharshini V** | **PES1UG24AM428** | UC-04: Pay Overdue Fine (Labs 1 & 2), Coffee Kiosk (Lab 3) |
+| Collaborator 1 | **PES1UG24AM084** | Group Partner | 
+| Collaborator 2 | **PES1UG24AM094** | Group Partner | 
+| Collaborator 3 | **PES1UG24AM087** | Group Partner | 
 ---
 
 ## 📁 Repository Structure & Organization
@@ -61,7 +60,7 @@ SE-Lab-Project/
 
 ---
 
-## 📋 Deliverables Summary (PES1UG24AM428)
+## Deliverables Summary (PES1UG24AM428)
 
 ### Lab 1: Requirements Engineering & UML Use-Case Modelling
 - **Problem Statement**: #08 — Digital Campus Library Reservation Gateway
@@ -93,20 +92,4 @@ SE-Lab-Project/
 
 ---
 
-## 🤝 Guide for Teammates (Collaborators)
 
-To add your lab submissions:
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/IAmKai1/SE-Lab-Project-PES1UG24AM084-PES1UG24AM428-PES1UG24AM094-PES1UG24AM087-.git
-   ```
-2. Create or navigate to your respective SRN folder inside each lab:
-   - For `PES1UG24AM084`: Place files in `Lab-01-.../PES1UG24AM084/`, `Lab-02-.../PES1UG24AM084/`, etc.
-   - For `PES1UG24AM094`: Place files in `Lab-01-.../PES1UG24AM094/`, `Lab-02-.../PES1UG24AM094/`, etc.
-   - For `PES1UG24AM087`: Place files in `Lab-01-.../PES1UG24AM087/`, `Lab-02-.../PES1UG24AM087/`, etc.
-3. Commit and push:
-   ```bash
-   git add .
-   git commit -m "Add Lab deliverables for <Your-SRN>"
-   git push origin main
-   ```
