@@ -75,16 +75,6 @@ SE-Lab-Project/
   - Full Final Report PDF: `Jira_Lab2_Final_Submission_Dharshini_V_PES1UG24AM428.pdf`
   - Editable Report Document: `Jira_Lab2_UC04_Individual_Report_Dharshini_V.docx`
 
-### Lab 3: Component Modelling & Architecture
-- **System**: Self-Service Coffee Kiosk System
-- **Architectural Style**: Layered Architecture (Presentation, Business, Data/Hardware Services)
-- **Components**: Touchscreen UI, Order Manager, Payment Service, Menu & Pricing Database, Receipt Printer Interface
-- **Key Files**:
-  - Final Report PDF: `Lab3_FINAL_Submission_Dharshini_V_PES1UG24AM428.pdf`
-  - Editable Word Report: `Lab3_Final_Submission_Diagram_and_Justification.docx`
-  - High-Resolution Diagram: `Lab3_Coffee_Kiosk_Component_Diagram_FIXED.png`
-  - Editable Diagram Models: `480.drawio` & `Lab3_Coffee_Kiosk_Component_Diagram.drawio`
-
 ---
 
 
