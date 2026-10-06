@@ -48,11 +48,6 @@ SE-Lab-Project/
     ├── README.md
     └── PES1UG24AM428/                  <-- Dharshini V's deliverables
         ├── README.md
-        ├── Lab3_FINAL_Submission_Dharshini_V_PES1UG24AM428.pdf
-        ├── Lab3_Final_Submission_Diagram_and_Justification.docx
-        ├── Lab3_Coffee_Kiosk_Component_Diagram_FIXED.png
-        ├── 480.drawio
-        └── Lab3_Coffee_Kiosk_Component_Diagram.drawio
     ├── PES1UG24AM084/                  <-- Teammate folder
     ├── PES1UG24AM094/                  <-- Teammate folder
     └── PES1UG24AM087/                  <-- Teammate folder
