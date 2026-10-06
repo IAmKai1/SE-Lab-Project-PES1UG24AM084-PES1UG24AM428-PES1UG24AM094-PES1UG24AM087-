@@ -12,7 +12,7 @@ Collaborative repository for Software Engineering Lab (SE Lab) group deliverable
 | Collaborator 3 | **PES1UG24AM087** | Group Partner | 
 ---
 
-## 📁 Repository Structure & Organization
+## Repository Structure & Organization
 
 This repository is organized by lab unit, with dedicated subdirectories for each teammate's individual contributions to ensure zero git merge conflicts during collaboration:
 
