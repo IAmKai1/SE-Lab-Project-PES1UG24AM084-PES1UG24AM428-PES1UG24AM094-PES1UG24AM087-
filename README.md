@@ -6,7 +6,7 @@ Collaborative repository for Software Engineering Lab (SE Lab) group deliverable
 
 | Student Name | SRN | Assigned Use Case / Role |
 | :--- | :--- | :--- |
-| **Dharshini V** | **PES1UG24AM428** | UC-04: Pay Overdue Fine (Labs 1 & 2), Coffee Kiosk (Lab 3) |
+| **Dharshini V** | **PES1UG24AM428** | UC-04: Pay Overdue Fine|
 | Collaborator 1 | **PES1UG24AM084** | Group Partner | 
 | Collaborator 2 | **PES1UG24AM094** | Group Partner | 
 | Collaborator 3 | **PES1UG24AM087** | Group Partner | 
