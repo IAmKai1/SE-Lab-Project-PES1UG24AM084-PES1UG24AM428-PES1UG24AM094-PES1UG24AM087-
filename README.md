@@ -9,7 +9,7 @@ Collaborative repository for Software Engineering Lab (SE Lab) group deliverable
 | **Dharshini V** | **PES1UG24AM428** | UC-04: Pay Overdue Fine (Labs 1 & 2), Coffee Kiosk (Lab 3) | ✅ Labs 1, 2, 3 Uploaded |
 | Collaborator 1 | **PES1UG24AM084** | Group Partner | ⏳ Pending Submission |
 | Collaborator 2 | **PES1UG24AM094** | Group Partner | ⏳ Pending Submission |
-| Collaborator 3 | **PES1UG24AM087** | Group Partner | ⏳ Pending Submission |
+| Collaborator 3 | **PES1UG24AM087** | Group Partner |✅ Labs 1, 2, 3 Uploaded|
 
 ---
 
