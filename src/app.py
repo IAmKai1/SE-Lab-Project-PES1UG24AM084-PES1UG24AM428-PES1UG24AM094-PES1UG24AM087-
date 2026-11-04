@@ -5,6 +5,7 @@ Fulfills SAD section 4.3 API design and SRS requirements.
 
 import os
 import time
+from typing import Any, Dict, List, Optional
 from flask import (
     Flask,
     jsonify,
@@ -26,12 +27,17 @@ from src.admin import LibrarianAdminService
 from src.security import RateLimiter, validate_isbn, sanitize_input
 
 
-def create_app(db_path: str = ":memory:", simulate_smtp_failure: bool = False) -> Flask:
+def create_app(
+    db_path: str = ":memory:",
+    simulate_smtp_failure: bool = False,
+    db: Optional[Database] = None
+) -> Flask:
     app = Flask(__name__)
     app.secret_key = os.environ.get("FLASK_SECRET_KEY", "lrg-secret-key-campus-production-2026")
 
     # Initialize services
-    db = Database(db_path=db_path)
+    if db is None:
+        db = Database(db_path=db_path)
     audit = AuditService(db)
     auth = AuthenticationManager(db, audit)
     catalog = CatalogSearchService(db)
@@ -78,7 +84,6 @@ def create_app(db_path: str = ":memory:", simulate_smtp_failure: bool = False) -
         response.headers["X-XSS-Protection"] = "1; mode=block"
 
         # LRG-SR-006 / TC-SEC-03: Secure cookies
-        # Flask session cookies
         if "session" in request.cookies:
             response.headers.add("Set-Cookie", "session=active; Path=/; Secure; HttpOnly; SameSite=Strict")
         return response
@@ -125,6 +130,11 @@ def create_app(db_path: str = ":memory:", simulate_smtp_failure: bool = False) -
     @app.route("/api/v1/books", methods=["POST"])
     def api_add_book():
         token = _get_token()
+        # RBAC check first (LRG-F-012, LRG-SR-003)
+        auth_ok, _, err = auth.require_role(token, "librarian")
+        if not auth_ok:
+            return jsonify({"error": "FORBIDDEN", "message": "Requires Head Librarian role."}), 403
+
         data = request.get_json(silent=True) or {}
         isbn = data.get("isbn")
         title = data.get("title")
@@ -138,8 +148,6 @@ def create_app(db_path: str = ":memory:", simulate_smtp_failure: bool = False) -
 
         ok, res_isbn, err = admin.add_book(isbn, title, author, publisher, year, status, token)
         if not ok:
-            if err == "FORBIDDEN" or err == "UNAUTHORIZED":
-                return jsonify({"error": "FORBIDDEN", "message": "Requires Head Librarian role."}), 403
             if err == "DUPLICATE_ISBN":
                 return jsonify({"error": "DUPLICATE_ISBN", "message": "Book with this ISBN already exists."}), 409
             return jsonify({"error": "BAD_REQUEST", "message": err}), 400
@@ -149,6 +157,11 @@ def create_app(db_path: str = ":memory:", simulate_smtp_failure: bool = False) -
     @app.route("/api/v1/books/<isbn>", methods=["PUT"])
     def api_edit_book(isbn: str):
         token = _get_token()
+        # RBAC check first (LRG-F-012, LRG-SR-003)
+        auth_ok, _, err = auth.require_role(token, "librarian")
+        if not auth_ok:
+            return jsonify({"error": "FORBIDDEN", "message": "Requires Head Librarian role."}), 403
+
         data = request.get_json(silent=True) or {}
         title = data.get("title")
         author = data.get("author")
@@ -157,8 +170,6 @@ def create_app(db_path: str = ":memory:", simulate_smtp_failure: bool = False) -
 
         ok, err = admin.edit_book(isbn, title, author, publisher, year, token)
         if not ok:
-            if err == "FORBIDDEN" or err == "UNAUTHORIZED":
-                return jsonify({"error": "FORBIDDEN", "message": "Requires Head Librarian role."}), 403
             if err == "BOOK_NOT_FOUND":
                 return jsonify({"error": "NOT_FOUND", "message": "Book not found."}), 404
             return jsonify({"error": "BAD_REQUEST", "message": err}), 400

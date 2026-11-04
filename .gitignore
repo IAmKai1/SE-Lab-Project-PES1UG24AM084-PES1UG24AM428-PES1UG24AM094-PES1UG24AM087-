@@ -14,3 +14,11 @@ Desktop.ini
 .idea/
 *.swp
 *~
+
+# Python & Testing artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+*.db

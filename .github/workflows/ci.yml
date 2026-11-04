@@ -1,0 +1,52 @@
+name: LRG Continuous Integration & Quality Gate
+
+on:
+  push:
+    branches:
+      - main
+      - PES1UG24AM428
+      - PES1UG24AM084
+      - PES1UG24AM094
+      - PES1UG24AM087
+  pull_request:
+    branches:
+      - main
+      - PES1UG24AM428
+
+jobs:
+  build-and-test:
+    name: Build, Test & Enforce Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Code Syntax & Style Check
+        run: |
+          python -m py_compile src/*.py tests/*.py
+
+      - name: Run Hermetic Unit & System Tests with Coverage
+        run: |
+          pytest --cov=src --cov-branch --cov-report=term-missing --cov-report=html:docs/coverage_html --cov-report=xml:docs/coverage.xml --cov-fail-under=70
+
+      - name: Upload Coverage Reports Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-coverage-reports
+          path: |
+            docs/coverage_html/
+            docs/coverage.xml
+          retention-days: 30

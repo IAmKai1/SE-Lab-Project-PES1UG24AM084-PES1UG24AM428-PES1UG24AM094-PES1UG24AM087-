@@ -110,10 +110,18 @@ class Database:
 
     def __init__(self, db_path: str = ":memory:"):
         self.db_path = db_path
+        if db_path == ":memory:":
+            self._mem_conn = sqlite3.connect(":memory:", check_same_thread=False)
+            self._mem_conn.row_factory = sqlite3.Row
+            self._mem_conn.execute("PRAGMA foreign_keys = ON;")
+        else:
+            self._mem_conn = None
         self._init_db()
 
     def get_connection(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
+        if self._mem_conn is not None:
+            return self._mem_conn
+        conn = sqlite3.connect(self.db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON;")
         return conn

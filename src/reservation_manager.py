@@ -201,7 +201,7 @@ class ReservationManager:
 
             # Check if there are active holds waiting in queue
             hold_cur = conn.execute(
-                "SELECT id, member_id FROM holds WHERE isbn = ? AND state = 'Active' ORDER BY created_at ASC LIMIT 1",
+                "SELECT id, member_id FROM holds WHERE isbn = ? AND state = 'Active' ORDER BY created_at ASC, id ASC LIMIT 1",
                 (isbn,)
             )
             first_hold = hold_cur.fetchone()
@@ -289,15 +289,19 @@ class ReservationManager:
 
     def _get_queue_position(self, conn, isbn: str, hold_id: int) -> int:
         """Calculate 1-based FIFO position of an active hold."""
-        # Find created_at for target hold
-        cur = conn.execute("SELECT created_at FROM holds WHERE id = ?", (hold_id,))
+        cur = conn.execute("SELECT id, created_at FROM holds WHERE id = ?", (hold_id,))
         row = cur.fetchone()
         if not row:
             return 0
         t = row["created_at"]
+        hid = row["id"]
         cnt_cur = conn.execute(
-            "SELECT COUNT(*) FROM holds WHERE isbn = ? AND state IN ('Active', 'Ready') AND created_at <= ?",
-            (isbn, t)
+            """
+            SELECT COUNT(*) FROM holds
+            WHERE isbn = ? AND state IN ('Active', 'Ready')
+            AND (created_at < ? OR (created_at = ? AND id <= ?))
+            """,
+            (isbn, t, t, hid)
         )
         return cnt_cur.fetchone()[0]
 
@@ -305,7 +309,7 @@ class ReservationManager:
         """Internal helper to promote the next active hold in line."""
         now = time.time()
         cur = conn.execute(
-            "SELECT id, member_id FROM holds WHERE isbn = ? AND state = 'Active' ORDER BY created_at ASC LIMIT 1",
+            "SELECT id, member_id FROM holds WHERE isbn = ? AND state = 'Active' ORDER BY created_at ASC, id ASC LIMIT 1",
             (isbn,)
         )
         nxt = cur.fetchone()
