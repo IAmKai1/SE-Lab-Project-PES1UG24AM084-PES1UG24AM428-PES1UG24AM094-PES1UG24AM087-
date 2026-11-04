@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Campus SSO Login - Campus Library Gateway{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <span class="login-icon">🔐</span>
+            <h1>Campus SSO Authentication</h1>
+            <p>Sign in using your institutional credentials to access hold reservations and librarian tools.</p>
+        </div>
+
+        {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form action="{{ url_for('ui_login', next=request.args.get('next')) }}" method="POST" class="login-form">
+            <div class="form-group">
+                <label for="member_id">Campus Member ID (SRN / Staff ID):</label>
+                <input
+                    type="text"
+                    id="member_id"
+                    name="member_id"
+                    placeholder="e.g. PES1UG24AM428 or LIB-HEAD-001"
+                    required
+                    class="form-control"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="sso_token">Campus SSO Auth Token:</label>
+                <input
+                    type="text"
+                    id="sso_token"
+                    name="sso_token"
+                    value="sso_valid_token_authenticated"
+                    placeholder="Enter signed campus SSO ticket"
+                    required
+                    class="form-control"
+                >
+                <small class="form-text text-muted">In testing/simulation mode, valid tokens must begin with <code>sso_valid_</code>.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Authenticate with Campus SSO</button>
+        </form>
+
+        <div class="quick-personas">
+            <h3>Quick Select Demo Personas</h3>
+            <div class="persona-buttons">
+                <button class="btn btn-outline-sm" onclick="setPersona('PES1UG24AM428', 'Dharshini V')">Student: Dharshini V (PES1UG24AM428)</button>
+                <button class="btn btn-outline-sm" onclick="setPersona('PES1UG24AM084', 'Dhareen G')">Student: Dhareen G (PES1UG24AM084)</button>
+                <button class="btn btn-outline-sm" onclick="setPersona('PES1UG24AM094', 'Divyansh')">Student: Divyansh (PES1UG24AM094)</button>
+                <button class="btn btn-outline-sm" onclick="setPersona('PES1UG24AM087', 'Dhruv Talavat')">Student: Dhruv (PES1UG24AM087)</button>
+                <button class="btn btn-accent-sm" onclick="setPersona('LIB-HEAD-001', 'Head Librarian')">Staff: Head Librarian (LIB-HEAD-001)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setPersona(memberId, name) {
+    document.getElementById('member_id').value = memberId;
+    document.getElementById('sso_token').value = 'sso_valid_token_authenticated';
+}
+</script>
+{% endblock %}

@@ -6,10 +6,10 @@ Collaborative repository for Software Engineering Lab (SE Lab) group deliverable
 
 | Student Name | SRN | Assigned Use Case / Role | Status |
 | :--- | :--- | :--- | :--- |
-| **Dharshini V** | **PES1UG24AM428** | UC-04: Pay Overdue Fine (Labs 1 & 2), Coffee Kiosk (Lab 3) | ✅ Labs 1, 2, 3 Uploaded |
-| Collaborator 1 | **PES1UG24AM084** | Group Partner | ⏳ Pending Submission |
-| Collaborator 2 | **PES1UG24AM094** | Group Partner | ⏳ Pending Submission |
-| Collaborator 3 | **PES1UG24AM087** | Group Partner |✅ Labs 1, 2, 3 Uploaded|
+| **Dharshini V** | **PES1UG24AM428** | UC-04: Pay Overdue Fine & Fine Management | ✅ Labs 1, 2, 3, 4 Uploaded |
+| Dhareen G | **PES1UG24AM084** | Group Partner | ✅ Labs 1, 2, 3 Uploaded |
+| Divyansh Badaya | **PES1UG24AM094** | Group Partner | ✅ Labs 1, 2, 3 Uploaded |
+| Dhruv Talavat | **PES1UG24AM087** | Group Partner | ✅ Labs 1, 2, 3 Uploaded |
 
 ---
 
@@ -24,49 +24,55 @@ SE-Lab-Project/
 │
 ├── Lab-01-Requirements-and-UML/
 │   ├── README.md
-│   └── PES1UG24AM428/                  <-- Dharshini V's deliverables
-│       ├── README.md
-│       ├── UC04_Pay_Overdue_Fine_Submission_Dharshini_V_PES1UG24AM428.pdf
-│       ├── Requirements_Table.docx
-│       ├── Use_Case_Flow_Specification.docx
-│       ├── UML_Use_Case_Diagram.png
-│       └── UML_Use_Case_Diagram.svg
-│   ├── PES1UG24AM084/                  <-- Teammate folder
-│   ├── PES1UG24AM094/                  <-- Teammate folder
-│   └── PES1UG24AM087/                  <-- Teammate folder
+│   ├── PES1UG24AM428/                  <-- Dharshini V's deliverables
+│   ├── PES1UG24AM084/                  <-- Dhareen G's deliverables
+│   ├── PES1UG24AM094/                  <-- Divyansh's deliverables
+│   └── PES1UG24AM087/                  <-- Dhruv's deliverables
 │
 ├── Lab-02-Jira-Agile/
 │   ├── README.md
-│   └── PES1UG24AM428/                  <-- Dharshini V's deliverables
-│       ├── README.md
-│       ├── Jira_Lab2_Final_Submission_Dharshini_V_PES1UG24AM428.pdf
-│       └── Jira_Lab2_UC04_Individual_Report_Dharshini_V.docx
-│   ├── PES1UG24AM084/                  <-- Teammate folder
-│   ├── PES1UG24AM094/                  <-- Teammate folder
-│   └── PES1UG24AM087/                  <-- Teammate folder
+│   ├── PES1UG24AM428/                  <-- Dharshini V's deliverables
+│   ├── PES1UG24AM084/                  <-- Dhareen G's deliverables
+│   ├── PES1UG24AM094/                  <-- Divyansh's deliverables
+│   └── PES1UG24AM087/                  <-- Dhruv's deliverables
 │
-└── Lab-03-Component-Architecture/
-    ├── README.md
-    └── PES1UG24AM428/                  <-- Dharshini V's deliverables
-        ├── README.md
-        ├── Lab3_FINAL_Submission_Dharshini_V_PES1UG24AM428.pdf
-        ├── Lab3_Final_Submission_Diagram_and_Justification.docx
-        ├── Lab3_Coffee_Kiosk_Component_Diagram_FIXED.png
-        ├── 480.drawio
-        └── Lab3_Coffee_Kiosk_Component_Diagram.drawio
-    ├── PES1UG24AM084/                  <-- Teammate folder
-    ├── PES1UG24AM094/                  <-- Teammate folder
-    └── PES1UG24AM087/                  <-- Teammate folder
+├── Lab-03-Component-Architecture/
+│   ├── README.md
+│   ├── PES1UG24AM428/                  <-- Dharshini V's deliverables (Updated to Library Architecture)
+│   ├── PES1UG24AM084/                  <-- Dhareen G's deliverables
+│   ├── PES1UG24AM094/                  <-- Divyansh's deliverables
+│   └── PES1UG24AM087/                  <-- Dhruv's deliverables
+│
+├── Lab-04-SRS-SAD-STP/                 <-- Group Specifications & Testing
+│   ├── README.md
+│   ├── SRS_Library_Reservation_Gateway (1).pdf
+│   ├── SAD_Library_Reservation_Gateway (1).pdf
+│   └── Test_Plan_Library_Reservation_Gateway.docx
+│
+├── Lab-04-VibeCoding/                  <-- Individual VibeCoding Game
+│   └── PES1UG24AM428/
+│       ├── README.md
+│       ├── source_code/
+│       ├── videos/
+│       └── documentation/
+│
+└── src/                                <-- Digital Campus Library Reservation Gateway Source Implementation
+    ├── audit.py
+    ├── auth.py
+    ├── catalog_search.py
+    ├── database.py
+    ├── fine_manager.py                 <-- Dharshini V (UC-04)
+    ├── notification.py
+    └── security.py
 ```
 
 ---
 
-## 📋 Deliverables Summary (PES1UG24AM428)
+## 📋 Deliverables Summary (PES1UG24AM428 — Dharshini V)
 
 ### Lab 1: Requirements Engineering & UML Use-Case Modelling
 - **Problem Statement**: #08 — Digital Campus Library Reservation Gateway
 - **Assigned Use Case**: `UC-04: Pay Overdue Fine`
-- **Primary Actor**: Student Member | **Supporting Actor**: Payment Gateway (external)
 - **Key Files**:
   - Full Report PDF: `UC04_Pay_Overdue_Fine_Submission_Dharshini_V_PES1UG24AM428.pdf`
   - Requirements Table: `Requirements_Table.docx` (FR-001 to FR-005, NFR-001, NFR-002)
@@ -81,32 +87,15 @@ SE-Lab-Project/
   - Full Final Report PDF: `Jira_Lab2_Final_Submission_Dharshini_V_PES1UG24AM428.pdf`
   - Editable Report Document: `Jira_Lab2_UC04_Individual_Report_Dharshini_V.docx`
 
-### Lab 3: Component Modelling & Architecture
-- **System**: Self-Service Coffee Kiosk System
+### Lab 3: Component Modelling & Architecture (Updated)
+- **System**: Digital Campus Library Reservation Gateway (`UC-04: Pay Overdue Fine`)
 - **Architectural Style**: Layered Architecture (Presentation, Business, Data/Hardware Services)
-- **Components**: Touchscreen UI, Order Manager, Payment Service, Menu & Pricing Database, Receipt Printer Interface
 - **Key Files**:
-  - Final Report PDF: `Lab3_FINAL_Submission_Dharshini_V_PES1UG24AM428.pdf`
-  - Editable Word Report: `Lab3_Final_Submission_Diagram_and_Justification.docx`
-  - High-Resolution Diagram: `Lab3_Coffee_Kiosk_Component_Diagram_FIXED.png`
-  - Editable Diagram Models: `480.drawio` & `Lab3_Coffee_Kiosk_Component_Diagram.drawio`
+  - Final Report PDF: `Lab3_FINAL_Submission_Dharshini_V_PES1UG24AM428.pdf` & `Lab3_FINAL_UC04_Dharshini_V_PES1UG24AM428.pdf`
+  - Editable Word Report: `Lab3_Architecture_Justification_Dharshini_V_PES1UG24AM428.docx`
+  - Component Diagram: `Digital_Campus_Library_Component_Diagram.png` & `.svg`
+  - Diagram Model: `Digital_Campus_Library_Component_Diagram.drawio`
 
----
-
-## 🤝 Guide for Teammates (Collaborators)
-
-To add your lab submissions:
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/IAmKai1/SE-Lab-Project-PES1UG24AM084-PES1UG24AM428-PES1UG24AM094-PES1UG24AM087-.git
-   ```
-2. Create or navigate to your respective SRN folder inside each lab:
-   - For `PES1UG24AM084`: Place files in `Lab-01-.../PES1UG24AM084/`, `Lab-02-.../PES1UG24AM084/`, etc.
-   - For `PES1UG24AM094`: Place files in `Lab-01-.../PES1UG24AM094/`, `Lab-02-.../PES1UG24AM094/`, etc.
-   - For `PES1UG24AM087`: Place files in `Lab-01-.../PES1UG24AM087/`, `Lab-02-.../PES1UG24AM087/`, etc.
-3. Commit and push:
-   ```bash
-   git add .
-   git commit -m "Add Lab deliverables for <Your-SRN>"
-   git push origin main
-   ```
+### Lab 4: Project Specifications & VibeCoding
+- **Lab-04-SRS-SAD-STP**: Software Requirements Specification (SRS), Software Architecture and Design (SAD), and Software Test Plan (STP) for the Digital Campus Library Reservation Gateway.
+- **Lab-04-VibeCoding**: Tug of War Python game repairs and enhancements (`source_code/`, before/after demonstration videos, chat history log, and final test verification report).

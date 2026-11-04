@@ -7,7 +7,7 @@ Convert customer requirements into functional and non-functional requirements ta
 
 ## Team Deliverables Directory
 Each teammate should store their assigned use case in their corresponding folder:
-- `PES1UG24AM428/` — Dharshini V (Assigned: `UC-04: Pay Overdue Fine`) ✅
-- `PES1UG24AM084/` — Collaborator 1 ⏳
-- `PES1UG24AM094/` — Collaborator 2 ⏳
-- `PES1UG24AM087/` — Collaborator 3 ⏳
+- `PES1UG24AM428/` — Dharshini V (Assigned: `UC-04: Pay Overdue Fine`) 
+- `PES1UG24AM084/` — Collaborator 1 
+- `PES1UG24AM094/` — Collaborator 2 
+- `PES1UG24AM087/` — Collaborator 3 

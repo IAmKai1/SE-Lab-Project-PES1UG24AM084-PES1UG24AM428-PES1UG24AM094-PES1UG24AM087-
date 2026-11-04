@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Head Librarian Administration - Campus Library{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <header class="section-header admin-banner">
+        <h1>Head Librarian Administration Center</h1>
+        <p>Restricted to Head Librarian credentials (<code>{{ user.member_id }}</code>). Enforces server-side RBAC (LRG-F-012, LRG-SR-003).</p>
+    </header>
+
+    <div class="admin-grid">
+        <!-- Return Book Form -->
+        <section class="admin-card">
+            <h2>Process Book Return & Hold Promotion (UC-06, UC-07)</h2>
+            <p>Mark returned book as Available and automatically advance the first waiting hold to <strong>Ready for Pickup</strong>.</p>
+            <form id="return-form" onsubmit="event.preventDefault(); markReturned();" class="admin-form">
+                <div class="form-group">
+                    <label for="return-isbn">Book ISBN to Return:</label>
+                    <input type="text" id="return-isbn" placeholder="e.g. 978-0132350884" required class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">Process Return</button>
+            </form>
+        </section>
+
+        <!-- Add Book Form -->
+        <section class="admin-card">
+            <h2>Add New Catalog Title (LRG-F-042)</h2>
+            <form id="add-book-form" onsubmit="event.preventDefault(); addBook();" class="admin-form">
+                <div class="form-group">
+                    <label for="new-isbn">ISBN:</label>
+                    <input type="text" id="new-isbn" placeholder="978-XXXXXXXXXX" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="new-title">Title:</label>
+                    <input type="text" id="new-title" placeholder="Book title" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="new-author">Author(s):</label>
+                    <input type="text" id="new-author" placeholder="Author name(s)" required class="form-control">
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label for="new-publisher">Publisher:</label>
+                        <input type="text" id="new-publisher" placeholder="Publisher" class="form-control">
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="new-year">Year:</label>
+                        <input type="number" id="new-year" value="2026" class="form-control">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-accent">Add to Catalog</button>
+            </form>
+        </section>
+    </div>
+
+    <!-- Hold Demand Report -->
+    <section class="admin-card mt-4">
+        <h2>Hold Demand Report (LRG-F-041, TC-ADM-02)</h2>
+        <p>Real-time analytics ranking catalog titles in descending order of reservation demand.</p>
+        <div class="table-responsive">
+            <table class="data-table" aria-label="Hold Demand Table">
+                <thead>
+                    <tr>
+                        <th scope="col">Rank</th>
+                        <th scope="col">ISBN</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Author</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Waiting Queue Length</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in demand_report %}
+                        <tr>
+                            <td>#{{ loop.index }}</td>
+                            <td><code>{{ item.isbn }}</code></td>
+                            <td><strong>{{ item.title }}</strong></td>
+                            <td>{{ item.author }}</td>
+                            <td>
+                                <span class="badge {% if item.status == 'Available' %}badge-available{% else %}badge-checkedout{% endif %}">
+                                    {{ item.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="queue-demand-count">{{ item.queueLength }} student(s)</span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Recent Audit Logs -->
+    <section class="admin-card mt-4">
+        <h2>System Security & Audit Trail (LRG-NF-007, TC-AUD-01)</h2>
+        <p>Immutable event log retained for 1 year with timestamps, actors, and details. Passwords omitted per LRG-SR-002.</p>
+        <div class="table-responsive">
+            <table class="data-table" aria-label="Audit Logs Table">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">User ID</th>
+                        <th scope="col">Action</th>
+                        <th scope="col">Entity</th>
+                        <th scope="col">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_logs %}
+                        <tr>
+                            <td>#{{ log.id }}</td>
+                            <td><code>{{ log.user_id }}</code></td>
+                            <td><span class="badge badge-audit">{{ log.action }}</span></td>
+                            <td>{{ log.entity }}</td>
+                            <td><small>{{ log.details }}</small></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<script>
+function markReturned() {
+    const isbn = document.getElementById('return-isbn').value.trim();
+    if (!isbn) return;
+    fetch('/api/v1/titles/' + encodeURIComponent(isbn) + '/return', {
+        method: 'POST'
+    })
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(res => {
+        if (res.status === 200) {
+            alert('Title marked Available!\nPromoted hold recipient: ' + (res.body.holdReadyFor || 'None (no queue)'));
+            window.location.reload();
+        } else {
+            alert('Error: ' + (res.body.message || res.body.error));
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+
+function addBook() {
+    const payload = {
+        isbn: document.getElementById('new-isbn').value.trim(),
+        title: document.getElementById('new-title').value.trim(),
+        author: document.getElementById('new-author').value.trim(),
+        publisher: document.getElementById('new-publisher').value.trim(),
+        year: parseInt(document.getElementById('new-year').value) || 2026,
+        status: 'Available'
+    };
+    fetch('/api/v1/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(res => {
+        if (res.status === 201) {
+            alert('Book added successfully to catalog!');
+            window.location.reload();
+        } else {
+            alert('Failed to add title: ' + (res.body.message || res.body.error));
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+</script>
+{% endblock %}

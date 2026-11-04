@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}My Active Holds - Campus Library{% endblock %}
+
+{% block content %}
+<div class="holds-container">
+    <header class="section-header">
+        <h1>My Reservation Holds</h1>
+        <p>Active and ready hold reservations associated with your campus account (<strong>{{ user.member_id }}</strong>).</p>
+    </header>
+
+    {% if holds %}
+        <div class="table-responsive">
+            <table class="data-table" aria-label="Member Active Holds">
+                <thead>
+                    <tr>
+                        <th scope="col">Hold ID</th>
+                        <th scope="col">Title & Author</th>
+                        <th scope="col">ISBN</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Queue Position</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in holds %}
+                        <tr>
+                            <td><code>#{{ h.holdId }}</code></td>
+                            <td>
+                                <strong><a href="{{ url_for('ui_book_detail', isbn=h.isbn) }}">{{ h.title }}</a></strong>
+                                <br><small class="text-muted">{{ h.author }}</small>
+                            </td>
+                            <td><code>{{ h.isbn }}</code></td>
+                            <td>
+                                {% if h.state == 'Ready' %}
+                                    <span class="badge badge-ready">READY FOR PICKUP (72h)</span>
+                                {% else %}
+                                    <span class="badge badge-active">In Queue</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if h.state == 'Ready' %}
+                                    <strong class="text-success">Ready at Desk</strong>
+                                {% else %}
+                                    <span class="queue-num">#{{ h.position }}</span> in line
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-danger-sm" onclick="cancelHold({{ h.holdId }})">Cancel Hold</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state-card">
+            <span class="empty-icon">📖</span>
+            <h3>No Active Holds</h3>
+            <p>You do not currently have any active book reservations.</p>
+            <a href="{{ url_for('ui_home') }}" class="btn btn-primary">Browse Catalog</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function cancelHold(holdId) {
+    if (!confirm('Are you sure you want to cancel this hold reservation?')) return;
+    fetch('/api/v1/holds/' + holdId, {
+        method: 'DELETE'
+    })
+    .then(r => {
+        if (r.status === 204) {
+            alert('Hold cancelled successfully.');
+            window.location.reload();
+        } else {
+            return r.json().then(d => alert('Error: ' + (d.message || d.error)));
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+</script>
+{% endblock %}
