@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Search Catalog - Digital Campus Library Gateway{% endblock %}
+
+{% block content %}
+<section class="hero-section" aria-labelledby="hero-heading">
+    <h1 id="hero-heading" class="hero-title">Campus Library Catalog & Hold Gateway</h1>
+    <p class="hero-subtitle">Search over 100,000 titles by title, author, or ISBN. Place and track hold reservations instantly.</p>
+
+    <div class="search-box-card">
+        <form action="{{ url_for('ui_home') }}" method="GET" class="search-form" role="search">
+            <div class="search-input-group">
+                <label for="search-input" class="sr-only">Search catalog</label>
+                <input
+                    type="text"
+                    id="search-input"
+                    name="q"
+                    value="{{ query }}"
+                    placeholder="Enter book title, author, or ISBN (e.g. Clean Code, 978-0132350884)..."
+                    required
+                    class="form-control search-input"
+                    aria-required="true"
+                >
+            </div>
+            <div class="search-controls">
+                <label for="search-type" class="sr-only">Search Filter</label>
+                <select id="search-type" name="type" class="form-select filter-select">
+                    <option value="title" {% if search_type == 'title' %}selected{% endif %}>By Title</option>
+                    <option value="author" {% if search_type == 'author' %}selected{% endif %}>By Author</option>
+                    <option value="isbn" {% if search_type == 'isbn' %}selected{% endif %}>By ISBN</option>
+                    <option value="all" {% if search_type == 'all' %}selected{% endif %}>All Fields</option>
+                </select>
+                <button type="submit" class="btn btn-primary search-btn">Search Catalog</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% if query %}
+<section class="results-section" aria-label="Search Results">
+    <div class="results-header">
+        <h2>Search Results for <span class="highlight">"{{ query }}"</span></h2>
+        {% if search_result %}
+            <p class="results-meta">Page {{ search_result.page }} of {{ search_result.totalPages }} (Total matches: {{ search_result.total }})</p>
+        {% endif %}
+    </div>
+
+    {% if search_result and search_result.results %}
+        <div class="book-grid">
+            {% for book in search_result.results %}
+                <article class="book-card">
+                    <div class="book-card-header">
+                        <span class="badge {% if book.status == 'Available' %}badge-available{% else %}badge-checkedout{% endif %}">
+                            {{ book.status }}
+                        </span>
+                        <span class="isbn-tag">ISBN: {{ book.isbn }}</span>
+                    </div>
+                    <h3 class="book-title">
+                        <a href="{{ url_for('ui_book_detail', isbn=book.isbn) }}">{{ book.title }}</a>
+                    </h3>
+                    <p class="book-author">By: <strong>{{ book.author }}</strong></p>
+                    <p class="book-publisher">Publisher: {{ book.publisher }} ({{ book.year }})</p>
+                    <div class="book-card-footer">
+                        <a href="{{ url_for('ui_book_detail', isbn=book.isbn) }}" class="btn btn-outline-sm">View Details</a>
+                        {% if book.status == 'CheckedOut' %}
+                            {% if user %}
+                                <form action="/api/v1/holds" method="POST" style="display:inline;">
+                                    <input type="hidden" name="isbn" value="{{ book.isbn }}">
+                                    <button type="button" class="btn btn-accent-sm" onclick="placeHold('{{ book.isbn }}')">Place Hold</button>
+                                </form>
+                            {% else %}
+                                <a href="{{ url_for('ui_login', next='/book/' ~ book.isbn) }}" class="btn btn-accent-sm">Login to Hold</a>
+                            {% endif %}
+                        {% else %}
+                            <span class="avail-note">Available at circulation desk</span>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        {% if search_result.totalPages > 1 %}
+            <nav class="pagination-nav" aria-label="Search pagination">
+                {% if search_result.page > 1 %}
+                    <a href="{{ url_for('ui_home', q=query, type=search_type, page=search_result.page - 1) }}" class="btn btn-page">« Previous</a>
+                {% endif %}
+                <span class="page-indicator">Page {{ search_result.page }} / {{ search_result.totalPages }}</span>
+                {% if search_result.page < search_result.totalPages %}
+                    <a href="{{ url_for('ui_home', q=query, type=search_type, page=search_result.page + 1) }}" class="btn btn-page">Next »</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="empty-state-card" role="alert">
+            <span class="empty-icon">🔍</span>
+            <h3>No results found</h3>
+            <p>We could not find any titles matching "{{ query }}".</p>
+            <ul class="empty-advice">
+                <li>Check for typos or spelling errors.</li>
+                <li>Try searching by general keywords instead of full titles.</li>
+                <li>Switch the filter option to "All Fields".</li>
+            </ul>
+        </div>
+    {% endif %}
+</section>
+{% endif %}
+
+<script>
+function placeHold(isbn) {
+    fetch('/api/v1/holds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isbn: isbn })
+    })
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(res => {
+        if (res.status === 201) {
+            alert('Success! Hold placed successfully. Your queue position is #' + res.body.position);
+            window.location.href = '/my-holds';
+        } else {
+            alert('Error: ' + (res.body.message || res.body.error));
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+</script>
+{% endblock %}

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-16T12:00:00.000Z" agent="Mozilla/5.0" version="24.0.0">
+  <diagram id="lib-arch-428" name="Library Architecture - Dharshini V">
+    <mxGraphModel dx="1200" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="Digital Campus Library Reservation Gateway — Layered Architecture&#xa;Student: Dharshini V | SRN: PES1UG24AM428 | Use Case: UC-04 Pay Overdue Fine" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#0d47a1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="15" width="800" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Presentation Layer Band -->
+        <mxCell id="band_pres" value="" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#e8f0fe;strokeColor=#4285f4;dashed=1;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="75" width="1120" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_pres" value="PRESENTATION LAYER" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="55" y="85" width="300" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Business Layer Band -->
+        <mxCell id="band_bus" value="" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#34a853;dashed=1;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="290" width="1120" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_bus" value="BUSINESS LAYER" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#1b5e20;" vertex="1" parent="1">
+          <mxGeometry x="55" y="300" width="300" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Data & External Layer Band -->
+        <mxCell id="band_data" value="" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#fbbc04;dashed=1;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="550" width="1120" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_data" value="DATA &amp; EXTERNAL SERVICES LAYER" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#bf360c;" vertex="1" parent="1">
+          <mxGeometry x="55" y="560" width="350" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Components -->
+        <!-- Student Member UI -->
+        <mxCell id="comp_ui" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;&lt;b style=&quot;font-size: 13px;&quot;&gt;Student Member UI Component&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #546e7a;&quot;&gt;View Balance, Itemized Fines, Select Payment Method (UC-04)&lt;/span&gt;" style="shape=module;jettyWidth=8;jettyHeight=4;whiteSpace=wrap;html=1;strokeWidth=1.5;fillColor=#ffffff;strokeColor=#263238;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="350" y="120" width="500" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Authentication & Session Component -->
+        <mxCell id="comp_auth" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;&lt;b style=&quot;font-size: 13px;&quot;&gt;Authentication &amp;amp; Session Component&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #546e7a;&quot;&gt;Validate Credentials, SSO, Member Status&lt;/span&gt;" style="shape=module;jettyWidth=8;jettyHeight=4;whiteSpace=wrap;html=1;strokeWidth=1.5;fillColor=#ffffff;strokeColor=#263238;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="340" width="280" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Fine Management Component -->
+        <mxCell id="comp_fine" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;&lt;b style=&quot;font-size: 13px;&quot;&gt;Fine Management Component (UC-04)&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #546e7a;&quot;&gt;Fine Calc (₹5/day, ₹200 cap per FR-003)&lt;br&gt;Balance Settlement &amp;amp; Receipt Gen&lt;/span&gt;" style="shape=module;jettyWidth=8;jettyHeight=4;whiteSpace=wrap;html=1;strokeWidth=1.5;fillColor=#ffffff;strokeColor=#263238;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="420" y="340" width="360" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Notification Service Component -->
+        <mxCell id="comp_notif" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;&lt;b style=&quot;font-size: 13px;&quot;&gt;Notification Service Component&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #546e7a;&quot;&gt;Email Dispatcher (Receipts per UC-04 Step 7)&lt;/span&gt;" style="shape=module;jettyWidth=8;jettyHeight=4;whiteSpace=wrap;html=1;strokeWidth=1.5;fillColor=#ffffff;strokeColor=#263238;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="850" y="340" width="280" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Payment Gateway Adapter -->
+        <mxCell id="comp_pay" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;&lt;b style=&quot;font-size: 13px;&quot;&gt;Payment Gateway Adapter&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #546e7a;&quot;&gt;Credit/Debit Card, UPI, Campus Wallet (External)&lt;/span&gt;" style="shape=module;jettyWidth=8;jettyHeight=4;whiteSpace=wrap;html=1;strokeWidth=1.5;fillColor=#ffffff;strokeColor=#263238;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="600" width="280" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Library Database Component -->
+        <mxCell id="comp_db" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;&lt;b style=&quot;font-size: 13px;&quot;&gt;Library Database Component&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #546e7a;&quot;&gt;Fine Balances, Overdue Records, Audits, Holds&lt;/span&gt;" style="shape=module;jettyWidth=8;jettyHeight=4;whiteSpace=wrap;html=1;strokeWidth=1.5;fillColor=#ffffff;strokeColor=#263238;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="420" y="600" width="360" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- External Campus SMTP Server -->
+        <mxCell id="comp_smtp" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;&lt;b style=&quot;font-size: 13px;&quot;&gt;External Campus SMTP Server&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; color: #546e7a;&quot;&gt;Secure Campus Mail Relay (Receipt Email Delivery)&lt;/span&gt;" style="shape=module;jettyWidth=8;jettyHeight=4;whiteSpace=wrap;html=1;strokeWidth=1.5;fillColor=#ffffff;strokeColor=#263238;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="850" y="600" width="280" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Ball & Socket Connectors: Pres to Bus -->
+        <mxCell id="conn_auth" value="IAuthentication&#xa;(Verify Member Session)" style="endArrow=halfCircle;endFill=0;endSize=14;startArrow=oval;startFill=0;startSize=10;html=1;strokeWidth=1.5;strokeColor=#0d47a1;fontStyle=2;fontColor=#0d47a1;fontSize=11;exitX=0.5;exitY=0;entryX=0.2;entryY=1;" edge="1" parent="1" source="comp_auth" target="comp_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="conn_fine" value="IFineService&#xa;(Query Fine, Pay Overdue)" style="endArrow=halfCircle;endFill=0;endSize=14;startArrow=oval;startFill=0;startSize=10;html=1;strokeWidth=1.5;strokeColor=#0d47a1;fontStyle=2;fontColor=#0d47a1;fontSize=11;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="comp_fine" target="comp_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Ball & Socket Connectors: Bus to Data -->
+        <mxCell id="conn_pay" value="IPaymentGateway&#xa;(Submit &amp; Authorize Tx)" style="endArrow=halfCircle;endFill=0;endSize=14;startArrow=oval;startFill=0;startSize=10;html=1;strokeWidth=1.5;strokeColor=#0d47a1;fontStyle=2;fontColor=#0d47a1;fontSize=11;exitX=0.5;exitY=0;entryX=0.2;entryY=1;" edge="1" parent="1" source="comp_pay" target="comp_fine">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="conn_db" value="IFineData / SQL&#xa;(Update Balance to ₹0 &amp; Audit)" style="endArrow=halfCircle;endFill=0;endSize=14;startArrow=oval;startFill=0;startSize=10;html=1;strokeWidth=1.5;strokeColor=#0d47a1;fontStyle=2;fontColor=#0d47a1;fontSize=11;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="comp_db" target="comp_fine">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="conn_smtp" value="ISMTPRelay&#xa;(Dispatch Email Alert)" style="endArrow=halfCircle;endFill=0;endSize=14;startArrow=oval;startFill=0;startSize=10;html=1;strokeWidth=1.5;strokeColor=#0d47a1;fontStyle=2;fontColor=#0d47a1;fontSize=11;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="comp_smtp" target="comp_notif">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Horizontal Connector: Fine to Notif -->
+        <mxCell id="conn_notif" value="INotification&#xa;(Email Receipt)" style="endArrow=halfCircle;endFill=0;endSize=14;startArrow=oval;startFill=0;startSize=10;html=1;strokeWidth=1.5;strokeColor=#0d47a1;fontStyle=2;fontColor=#0d47a1;fontSize=11;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="comp_fine" target="comp_notif">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend" value="Ball (—O) = Provided Interface   |   Socket (—C) = Required Interface   |   Assembly Connector (—O C—)" style="text;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#555555;fillColor=#f5f5f5;strokeColor=#cccccc;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="780" width="700" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

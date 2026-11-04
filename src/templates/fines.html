@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Overdue Fines Desk - Campus Library{% endblock %}
+
+{% block content %}
+<div class="fines-container">
+    <header class="section-header">
+        <h1>Overdue Fines & Settlement Desk</h1>
+        <p>Use Case <strong>UC-04: Pay Overdue Fine</strong> (Assigned: Dharshini V - PES1UG24AM428).</p>
+    </header>
+
+    <div class="fine-summary-card">
+        <div class="summary-metric">
+            <span class="metric-label">Outstanding Fine Balance</span>
+            <span class="metric-value {% if fines_info.total_unpaid > 0 %}text-danger{% else %}text-success{% endif %}">
+                ${{ "%.2f"|format(fines_info.total_unpaid) }}
+            </span>
+        </div>
+        <div class="summary-status">
+            {% if fines_info.is_hold_blocked %}
+                <div class="alert alert-danger" role="alert">
+                    ⚠️ <strong>Reservation Block Active:</strong> Your outstanding fine balance exceeds the ${{ "%.2f"|format(fines_info.threshold) }} threshold. Settle overdue fees to unlock new book holds.
+                </div>
+            {% elif fines_info.total_unpaid > 0 %}
+                <div class="alert alert-warning" role="alert">
+                    ℹ️ You have pending overdue fines. Settle them promptly to avoid reservation restrictions.
+                </div>
+            {% else %}
+                <div class="alert alert-success" role="alert">
+                    ✅ Your account has zero overdue fines. Full reservation privileges are active.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <section class="fines-list-section">
+        <h2>Fine Records</h2>
+        {% if fines_info.fines %}
+            <div class="table-responsive">
+                <table class="data-table" aria-label="Member Fines Table">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Book Title & ISBN</th>
+                            <th scope="col">Fine Amount</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Transaction ID</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in fines_info.fines %}
+                            <tr>
+                                <td><code>#{{ f.id }}</code></td>
+                                <td>
+                                    <strong>{{ f.title }}</strong><br>
+                                    <small class="text-muted">ISBN: {{ f.isbn }}</small>
+                                </td>
+                                <td><strong>${{ "%.2f"|format(f.amount) }}</strong></td>
+                                <td>
+                                    {% if f.status == 'Paid' %}
+                                        <span class="badge badge-paid">PAID & SETTLED</span>
+                                    {% else %}
+                                        <span class="badge badge-unpaid">UNPAID OVERDUE</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if f.transaction_id %}
+                                        <code>{{ f.transaction_id }}</code>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if f.status == 'Unpaid' %}
+                                        <button class="btn btn-primary-sm" onclick="payFine({{ f.id }}, {{ f.amount }})">Pay Fine</button>
+                                    {% else %}
+                                        <span class="text-success">Receipt Issued</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state-card">
+                <span class="empty-icon">🎉</span>
+                <h3>No Overdue Fine Records</h3>
+                <p>No historical or pending fine records on file for account {{ user.member_id }}.</p>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+function payFine(fineId, amount) {
+    if (!confirm('Proceed to settle fine #' + fineId + ' ($' + amount.toFixed(2) + ') via Campus Wallet?')) return;
+    fetch('/api/v1/fines/' + fineId + '/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_method: 'CAMPUS_WALLET' })
+    })
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(res => {
+        if (res.status === 200) {
+            alert('Payment Successful!\nTransaction ID: ' + res.body.transaction_id + '\nAmount Paid: $' + res.body.amount_paid.toFixed(2));
+            window.location.reload();
+        } else {
+            alert('Payment failed: ' + (res.body.message || res.body.error));
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+</script>
+{% endblock %}

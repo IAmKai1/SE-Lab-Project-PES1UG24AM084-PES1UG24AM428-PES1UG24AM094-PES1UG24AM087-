@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Digital Campus Library Reservation Gateway - PES University">
+    <title>{% block title %}Digital Campus Library Reservation Gateway{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header-nav" role="banner">
+        <div class="nav-container">
+            <div class="brand">
+                <a href="{{ url_for('ui_home') }}" class="brand-link" aria-label="Digital Campus Library Home">
+                    <span class="brand-icon">📚</span>
+                    <span class="brand-title">Campus Library Gateway</span>
+                </a>
+                <span class="badge badge-campus">PES SE Lab 2026</span>
+            </div>
+            <nav class="nav-links" role="navigation" aria-label="Main Navigation">
+                <a href="{{ url_for('ui_home') }}" class="nav-item">Search Catalog</a>
+                {% if user %}
+                    <a href="{{ url_for('ui_my_holds') }}" class="nav-item">My Holds</a>
+                    <a href="{{ url_for('ui_fines') }}" class="nav-item">Overdue Fines</a>
+                    {% if user.role == 'librarian' %}
+                        <a href="{{ url_for('ui_admin_dashboard') }}" class="nav-item nav-admin">Librarian Admin</a>
+                    {% endif %}
+                    <span class="user-pill" aria-label="Signed in as {{ user.name }}">
+                        👤 {{ user.name }} ({{ user.member_id }})
+                    </span>
+                    <a href="{{ url_for('ui_logout') }}" class="btn btn-outline-sm">Log Out</a>
+                {% else %}
+                    <a href="{{ url_for('ui_login') }}" class="btn btn-primary-sm">Campus SSO Login</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content" role="main" id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer" role="contentinfo">
+        <div class="footer-container">
+            <p>© 2026 Digital Campus Library Reservation Gateway (LRG v1.0). PES University SE Mini-Project.</p>
+            <p class="footer-team">Team: PES1UG24AM084 • PES1UG24AM428 • PES1UG24AM094 • PES1UG24AM087</p>
+        </div>
+    </footer>
+</body>
+</html>

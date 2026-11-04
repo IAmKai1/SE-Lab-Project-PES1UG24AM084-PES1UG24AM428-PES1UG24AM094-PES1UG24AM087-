@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{% if book %}{{ book.title }}{% else %}Book Detail{% endif %} - Campus Library{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <p>{{ error }}</p>
+            <a href="{{ url_for('ui_home') }}" class="btn btn-outline">Back to Catalog</a>
+        </div>
+    {% elif book %}
+        <nav aria-label="Breadcrumb" class="breadcrumb-nav">
+            <a href="{{ url_for('ui_home') }}">Catalog</a> &gt; <span>{{ book.title }}</span>
+        </nav>
+
+        <article class="detail-card">
+            <header class="detail-header">
+                <div class="detail-status">
+                    <span class="badge {% if book.status == 'Available' %}badge-available{% else %}badge-checkedout{% endif %}">
+                        {{ book.status }}
+                    </span>
+                    {% if book.status == 'CheckedOut' %}
+                        <span class="queue-badge">Queue Length: <strong>{{ book.queueLength }}</strong> pending</span>
+                    {% endif %}
+                </div>
+                <h1 class="detail-title">{{ book.title }}</h1>
+                <p class="detail-author">Author(s): <strong>{{ book.author }}</strong></p>
+            </header>
+
+            <div class="detail-body">
+                <dl class="metadata-grid">
+                    <dt>ISBN</dt>
+                    <dd><code>{{ book.isbn }}</code></dd>
+
+                    <dt>Publisher</dt>
+                    <dd>{{ book.publisher }}</dd>
+
+                    <dt>Publication Year</dt>
+                    <dd>{{ book.year }}</dd>
+
+                    <dt>Availability State</dt>
+                    <dd>
+                        {% if book.status == 'Available' %}
+                            <span class="text-success">Available for immediate check-out at main campus circulation desk.</span>
+                        {% else %}
+                            <span class="text-warning">Currently on loan to another member. You may place a reservation hold.</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+
+            <footer class="detail-actions">
+                {% if book.status == 'CheckedOut' %}
+                    {% if user %}
+                        <button class="btn btn-primary btn-lg" onclick="placeHold('{{ book.isbn }}')">Place Reservation Hold</button>
+                    {% else %}
+                        <a href="{{ url_for('ui_login', next='/book/' ~ book.isbn) }}" class="btn btn-primary btn-lg">Sign In to Place Hold</a>
+                    {% endif %}
+                {% else %}
+                    <button class="btn btn-disabled btn-lg" disabled title="Title is currently available; holds only apply to checked-out titles">Hold Not Applicable (Available)</button>
+                {% endif %}
+                <a href="{{ url_for('ui_home') }}" class="btn btn-outline btn-lg">Back to Search</a>
+            </footer>
+        </article>
+    {% endif %}
+</div>
+
+<script>
+function placeHold(isbn) {
+    fetch('/api/v1/holds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isbn: isbn })
+    })
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(res => {
+        if (res.status === 201) {
+            alert('Hold placed successfully! Queue Position: #' + res.body.position);
+            window.location.href = '/my-holds';
+        } else {
+            alert('Cannot place hold: ' + (res.body.message || res.body.error));
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+</script>
+{% endblock %}
