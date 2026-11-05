@@ -27,14 +27,20 @@ Comprehensive collaborative repository for the **Software Engineering Lab Projec
 
 Strictly maintained in **this single GitHub repository** as required by the course coordinator:
 
-### 1. Deliverable 1: Requirements, UML, Jira & Architecture (Labs 1–4)
+### 1. Deliverable 1: Requirements, UML, Jira, Architecture & Analysis (Labs 1–5)
 - **Lab 1**: Requirements Engineering, Functional/Non-Functional Specifications, and UML Use Case Modeling.
 - **Lab 2**: Jira Agile Backlog, Fibonacci Story Points, and Sprint Execution.
 - **Lab 3**: UML Component Architecture, Provided/Required Interfaces, and Architectural Decision Records (ADRs).
-- **Lab 4**: Software Requirements Specification (`SRS`), Software Architecture & Design (`SAD`), and Software Test Plan (`STP`).
-  - [`Lab-04-SRS-SAD-STP/SRS_Library_Reservation_Gateway (1).pdf`](file:///Lab-04-SRS-SAD-STP/SRS_Library_Reservation_Gateway%20(1).pdf)
-  - [`Lab-04-SRS-SAD-STP/SAD_Library_Reservation_Gateway (1).pdf`](file:///Lab-04-SRS-SAD-STP/SAD_Library_Reservation_Gateway%20(1).pdf)
-  - [`Lab-04-SRS-SAD-STP/Test_Plan_Library_Reservation_Gateway.docx`](file:///Lab-04-SRS-SAD-STP/Test_Plan_Library_Reservation_Gateway.docx) *(Updated to v2.0)*
+- **Lab 4**: Software Requirements Specification (SRS), Software Architecture & Design (SAD), and Software Test Plan (STP).
+  - [Lab-04-SRS-SAD-STP/SRS_Library_Reservation_Gateway (1).pdf](file:///Lab-04-SRS-SAD-STP/SRS_Library_Reservation_Gateway%20(1).pdf)
+  - [Lab-04-SRS-SAD-STP/SAD_Library_Reservation_Gateway (1).pdf](file:///Lab-04-SRS-SAD-STP/SAD_Library_Reservation_Gateway%20(1).pdf)
+  - [Lab-04-SRS-SAD-STP/Test_Plan_Library_Reservation_Gateway.docx](file:///Lab-04-SRS-SAD-STP/Test_Plan_Library_Reservation_Gateway.docx) *(Updated to v2.0)*
+  - [Lab-04-VibeCoding/](file:///Lab-04-VibeCoding/) — VibeCoding game enhancement and documentation deliverables.
+- **Lab 5**: Static Code Analysis (Pylint, Bandit, Flake8) — AST security hardening, PEP 8 styling, and code quality optimization.
+  - [Lab-05-Static-Code-Analysis/PES1UG24AM428/car_rental.py](file:///Lab-05-Static-Code-Analysis/PES1UG24AM428/car_rental.py) — Cleaned Python code (**Pylint: 10.00/10**, **Bandit: 0 issues**, **Flake8: 0 violations**).
+  - [Lab-05-Static-Code-Analysis/PES1UG24AM428/issues.md](file:///Lab-05-Static-Code-Analysis/PES1UG24AM428/issues.md) — 13 documented issues with severity, CWE, and fix strategies.
+  - [Lab-05-Static-Code-Analysis/PES1UG24AM428/reflection.md](file:///Lab-05-Static-Code-Analysis/PES1UG24AM428/reflection.md) — Complete reflection report on tooling, prioritization, and CI/CD.
+  - Standalone dedicated repo: [https://github.com/DharshiniPES/L5_56_car-rental](https://github.com/DharshiniPES/L5_56_car-rental) (with 3 distinct commits for Bandit, Pylint, and Flake8).
 
 ### 2. Deliverable 2: Software Implementation & Sprints 1, 2, and 3
 - Working modular web application built with **Python / Flask** and **SQLite** (relational engine with foreign key enforcement and transactional integrity):
@@ -154,6 +160,8 @@ SE-Lab-Project/
 ├── Lab-02-Jira-Agile/                 <-- Lab 2 individual contributions
 ├── Lab-03-Component-Architecture/     <-- Lab 3 individual contributions
 ├── Lab-04-SRS-SAD-STP/                <-- Lab 4 core specifications
+├── Lab-04-VibeCoding/                 <-- Lab 4 VibeCoding individual submissions
+├── Lab-05-Static-Code-Analysis/       <-- Lab 5 Static Analysis (Pylint, Bandit, Flake8)
 ├── pytest.ini
 ├── requirements.txt
 └── README.md
