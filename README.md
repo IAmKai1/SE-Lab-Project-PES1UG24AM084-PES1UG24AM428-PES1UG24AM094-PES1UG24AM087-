@@ -2,7 +2,7 @@
 ## Software Engineering Mini-Project — Collaborative Team Repository
 
 [![CI Quality Gate](https://github.com/IAmKai1/SE-Lab-Project-PES1UG24AM084-PES1UG24AM428-PES1UG24AM094-PES1UG24AM087-/actions/workflows/ci.yml/badge.svg)](https://github.com/IAmKai1/SE-Lab-Project-PES1UG24AM084-PES1UG24AM428-PES1UG24AM094-PES1UG24AM087-/actions)
-![Tests](https://img.shields.io/badge/tests-61%2F61%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-88%2F88%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-89%25-brightgreen)
 ![Branch Coverage](https://img.shields.io/badge/branch%20coverage-83%25-brightgreen)
 ![WCAG](https://img.shields.io/badge/accessibility-WCAG%202.1%20AA-blue)
@@ -53,7 +53,7 @@ All four formal test reports executed during the testing window (**2nd Nov to 6t
 | Deliverable Item | Document Link | Description & Key Results |
 | :--- | :--- | :--- |
 | **1. Updated Test Cases** | [`docs/Updated_Test_Case_Document.md`](file:///docs/Updated_Test_Case_Document.md) | Details test case changes across Sprints 1–3, adding fine settlement, 72h auto-expire cascade, and updated RTM. |
-| **2.i. Unit Test Report** | [`docs/Unit_Test_Report.md`](file:///docs/Unit_Test_Report.md) | 61 unit tests executed across all classes; **100% pass rate**; 0 open defects. |
+| **2.i. Unit Test Report** | [`docs/Unit_Test_Report.md`](file:///docs/Unit_Test_Report.md) | 88 unit and integration tests executed across all 10 use cases across all classes; **100% pass rate**; 0 open defects. |
 | **2.ii. System Validation Report** | [`docs/System_Validation_Report.md`](file:///docs/System_Validation_Report.md) | End-to-end flows for UC-01 to UC-09 + UC-04; NFR validation ($P_{90} < 0.006\text{ s}$); 100% RTM acceptance (`A`). |
 | **2.iii. Code Coverage Report** | [`docs/Code_Coverage_Report.md`](file:///docs/Code_Coverage_Report.md) | **89% overall statement coverage**; **93.8% business-layer coverage** (exceeds 70% threshold in `LRG-NF-006`). |
 | **2.iv. Branch Coverage Report** | [`docs/Branch_Coverage_Report.md`](file:///docs/Branch_Coverage_Report.md) | **82.6% branch coverage** across 270 decision points; evaluates all boundary paths and error gates. |
@@ -73,7 +73,7 @@ pip install -r requirements.txt
 
 ### 2. Execute Automated Test Suite & Generate Reports
 ```bash
-# Run all 61 tests with statement and branch coverage
+# Run all 88 tests with statement and branch coverage
 pytest --cov=src --cov-branch --cov-report=term-missing --cov-report=html:docs/coverage_html --cov-report=xml:docs/coverage.xml
 
 # Or run via automated test script

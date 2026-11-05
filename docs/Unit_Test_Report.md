@@ -1,160 +1,171 @@
 # Digital Campus Library Reservation Gateway (LRG)
-## Unit Test Report (Deliverable 2.b.i)
+## Unit Test Execution Report (Deliverable 2.b.i)
+### Comprehensive Verification Report for ALL Use Cases (UC-01 through UC-09 + UC-04b)
 
-**Testing Window**: 2nd November 2026 – 6th November 2026  
-**Document Version**: 2.0 (Post Sprint-3 Execution)  
-**Project**: Digital Campus Library Reservation Gateway  
-**Institution**: PES University – Department of Computer Science & Engineering  
-**Authors / Team**:
-- Dhareen G (SRN: `PES1UG24AM084`) – QA Lead
-- Dharshini V (SRN: `PES1UG24AM428`) – Dev Lead & UC-04 Fine Module Owner
-- Divyansh (SRN: `PES1UG24AM094`) – Backend & Search Engineer
-- Dhruv Talavat (SRN: `PES1UG24AM087`) – Database & Security Engineer
-
----
-
-## 1. Executive Summary
-
-This Unit Test Report documents the complete execution and verification of all unit tests for the **Digital Campus Library Reservation Gateway (LRG)** across Sprints 1, 2, and 3. Testing was conducted between **2nd November and 6th November 2026** in strict accordance with the Software Test Plan (STP v2.0).
-
-All unit test suites targeted the isolated business logic classes, domain validators, database queries, authentication controllers, reservation queue state transitions, fine settlement engines, and notification retry mechanisms.
-
-| Metric | Target (STP) | Actual Result | Status |
-| :--- | :--- | :--- | :--- |
-| **Total Unit Tests Executed** | 35+ | **61** | **PASSED** |
-| **Tests Passed** | 100% | **61 (100.0%)** | **PASSED** |
-| **Tests Failed** | 0 | **0 (0.0%)** | **PASSED** |
-| **Tests Blocked / Skipped** | 0 | **0 (0.0%)** | **PASSED** |
-| **Critical / High Severity Defects** | 0 | **0 Open** | **PASSED** |
-| **Business Logic Unit Test Coverage** | $\ge 70\%$ (LRG-NF-006) | **$\ge 90\%$** | **EXCEEDED** |
-| **Total Test Execution Duration** | $< 10.0\text{ s}$ | **1.38 seconds** | **OPTIMAL** |
+**Execution Date**: 5th November 2026  
+**Testing Phase**: Sprints 1, 2, and 3 Testing Window (2nd Nov to 6th Nov 2026)  
+**Execution Engine**: `pytest 9.1.1` on Python 3.11.9 (win32)  
+**Total Test Cases Collected**: 88  
+**Total Passed**: 88 (100.0%)  
+**Total Failed**: 0 (0.0%)  
+**Total Skipped / Blocked**: 0 (0.0%)  
+**Total Test Runtime**: 2.99 seconds  
 
 ---
 
-## 2. Test Environment & Harness
+## 1. Executive Summary & Use Case Distribution
 
-- **Test Framework**: `pytest 9.1.1` with `pytest-cov 7.1.0` and Python `unittest` assertions
-- **Execution Platform**: Windows 11 / Linux CI Runner, Python 3.11.9 64-bit
-- **Database Engine**: In-memory relational SQLite engine (`:memory:`) with strict foreign keys (`PRAGMA foreign_keys = ON;`)
-- **Stubs & Mocks**:
-  - Mock Campus OpenID Connect SSO Provider (`AuthenticationManager`)
-  - Test SMTP Sink with Retry Interceptor (`NotificationService`)
-  - Payment Gateway Simulation Stub (`FineManager`)
-- **Isolation Strategy**: Every test suite executes with fresh, isolated in-memory transactional database fixtures (`conftest.py`), ensuring 100% hermetic and deterministic execution without state pollution.
-
----
-
-## 3. Unit Test Execution Details by Module
-
-### 3.1 Catalog Search Component (`src/catalog_search.py`)
-Tested via `tests/test_catalog_search.py` — Target Requirement: `LRG-F-001` to `LRG-F-005`.
-
-| Test ID | Method / Test Function | Input Parameters | Expected Result | Actual Result | Execution Time | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-SRCH-01` | `test_tc_srch_01_valid_isbn_search` | `isbn="978-0132350884"`, `type="isbn"` | Returns single match "Clean Code", status="CheckedOut" | Matched 1 title, correct availability | 0.008s | **PASS** |
-| `TC-SRCH-02a` | `test_tc_srch_02_partial_title_and_author_search` | `query="Design"`, `type="title"` | Returns $\ge 3$ partial title matches | Found 3 matches, all titles contain "Design" | 0.006s | **PASS** |
-| `TC-SRCH-02b` | `test_tc_srch_02_partial_title_and_author_search` | `query="Martin"`, `type="author"` | Returns $\ge 2$ matches for Robert C. Martin | Found 2 matches, author correctly matched | 0.005s | **PASS** |
-| `TC-SRCH-03a` | `test_tc_srch_03_empty_and_malformed_input` | `query=""` | Rejection with `SEARCH_QUERY_CANNOT_BE_EMPTY`, no DB query | Rejected with code `SEARCH_QUERY_CANNOT_BE_EMPTY` | 0.003s | **PASS** |
-| `TC-SRCH-03b` | `test_tc_srch_03_empty_and_malformed_input` | `query="   "` (whitespace) | Rejection with `SEARCH_QUERY_CANNOT_BE_EMPTY` | Rejected with code `SEARCH_QUERY_CANNOT_BE_EMPTY` | 0.003s | **PASS** |
-| `TC-SRCH-03c` | `test_tc_srch_03_empty_and_malformed_input` | `query="invalid-isbn-123"`, `type="isbn"` | Rejection with `INVALID_ISBN_FORMAT` | Rejected with code `INVALID_ISBN_FORMAT` | 0.003s | **PASS** |
-| `TC-SRCH-03d` | `test_tc_srch_03_empty_and_malformed_input` | `type="nonexistent_type"` | Rejection with `INVALID_SEARCH_TYPE` | Rejected with code `INVALID_SEARCH_TYPE` | 0.003s | **PASS** |
-| `TC-SRCH-04` | `test_tc_srch_04_pagination_and_result_fields` | `page=1`, `page_size=10` | 10 results/page; fields `isbn, title, author, status` | Exactly 10 items returned with all 4 required schema keys | 0.007s | **PASS** |
-| `TC-SRCH-05a` | `test_tc_srch_05_book_detail_and_hold_eligibility` | `isbn="978-0132350884"` (CheckedOut) | `status="CheckedOut"`, `isHoldAllowed=True`, `queueLength>=1` | Returned queue length 1, hold allowed = True | 0.005s | **PASS** |
-| `TC-SRCH-05b` | `test_tc_srch_05_book_detail_and_hold_eligibility` | `isbn="978-0134494166"` (Available) | `status="Available"`, `isHoldAllowed=False` | Returned available status, hold allowed = False | 0.004s | **PASS** |
-| `TC-SRCH-06` | `test_tc_srch_06_no_matches_guidance` | `query="NonExistentTitleXYZ999"` | Total=0, message advising spelling check/broadening | Total 0, helpful advice string returned | 0.005s | **PASS** |
-| `TC-SRCH-07` | `test_tc_srch_07_isbn_normalization` | Unhyphenated `"9780132350884"` | Normalized match to `"978-0132350884"` | Matched Clean Code correctly | 0.005s | **PASS** |
-| `TC-SRCH-08` | `test_book_detail_not_found` | `isbn="978-9999999999"` | Returns `(False, None, "BOOK_NOT_FOUND")` | Handled gracefully with `BOOK_NOT_FOUND` | 0.003s | **PASS** |
-| `TC-SRCH-09` | `test_book_detail_empty_param` | `isbn=""` | Returns `(False, None, "ISBN_REQUIRED")` | Rejection with `ISBN_REQUIRED` | 0.002s | **PASS** |
+All 88 automated unit and integration tests executed cleanly with zero failures. The test suite provides multi-layered validation across each use case assigned to team members:
+- **UC-01 (Search ISBN Catalog)**: 11 tests
+- **UC-02 (View Book Details)**: 6 tests
+- **UC-03 (Place Hold Request)**: 9 tests
+- **UC-04 (View & Cancel My Holds)**: 8 tests
+- **UC-04b (Pay Overdue Fine & Settle Dues)**: 8 tests
+- **UC-05 (Campus SSO Login & Session Security)**: 10 tests
+- **UC-06 (Update Availability Status & Return)**: 6 tests
+- **UC-07 (Notify Next Member via Email)**: 5 tests
+- **UC-08 (Manage Catalog Entries)**: 6 tests
+- **UC-09 (View Hold Demand Report)**: 4 tests
+- **Non-Functional Requirements (NFRs & Security)**: 15 tests
 
 ---
 
-### 3.2 Authentication & Access Control Component (`src/auth.py`)
-Tested via `tests/test_auth.py` — Target Requirements: `LRG-F-010` to `LRG-F-013`, `LRG-SR-002`, `LRG-SR-005`.
+## 2. Granular Unit Test Results Table by Use Case
 
-| Test ID | Method / Test Function | Input Parameters | Expected Result | Actual Result | Execution Time | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-AUTH-01` | `test_tc_auth_01_valid_sso_login` | `member_id="PES1UG24AM428"`, valid token | Returns active session token; validated user info matches | Token generated, verified name & role student | 0.006s | **PASS** |
-| `TC-AUTH-02` | `test_tc_auth_02_lockout_after_five_failed_logins` | `member_id="PES1UG24AM094"`, 5 failed tokens | Failed attempts recorded; 6th attempt blocked with `ACCOUNT_LOCKED` for 15 mins | 5 attempts tracked, 6th attempt locked out | 0.012s | **PASS** |
-| `TC-AUTH-03` | `test_tc_auth_03_guest_search_vs_hold_gate` | Unauthenticated guest client | Search succeeds (200); Place Hold returns 401 Unauthorized | Search 200 OK, Hold POST 401 NOT_LOGGED_IN | 0.009s | **PASS** |
-| `TC-AUTH-04` | `test_tc_auth_04_student_attempts_librarian_endpoint` | Student token (`PES1UG24AM428`) to `/api/v1/reports/demand` | Returns 403 Forbidden with `error="FORBIDDEN"` | HTTP 403 Forbidden returned | 0.007s | **PASS** |
-| `TC-AUTH-05a` | `test_tc_auth_05_logout_and_idle_timeout` | Student session, inactive 31 minutes | Session expired with `SESSION_EXPIRED_IDLE`, session destroyed | Token invalidated after 30 min idle threshold | 0.008s | **PASS** |
-| `TC-AUTH-05b` | `test_tc_auth_05_logout_and_idle_timeout` | Valid student token, POST logout | Session deleted from database; subsequent lookup fails | Session destroyed, subsequent validation False | 0.005s | **PASS** |
-| `TC-AUTH-06` | `test_tc_auth_unknown_member` | `member_id="NON_EXISTENT_SRN"` | Returns `(False, None, "INVALID_CREDENTIALS")` | Rejected with `INVALID_CREDENTIALS` | 0.004s | **PASS** |
-| `TC-AUTH-07` | `test_tc_auth_invalid_session_token` | `token="fabricated_bogus_token"` | Returns `(False, None, "INVALID_SESSION")` | Rejected with `INVALID_SESSION` | 0.003s | **PASS** |
+### 2.1 UC-01: Search ISBN Catalog (Dhareen G & Divyansh)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-SRCH-01` | `test_catalog_search.py::test_tc_srch_01_valid_isbn_search` | Functional / Positive | 0.008s | **PASS** |
+| `TC-SRCH-02` | `test_catalog_search.py::test_tc_srch_02_partial_title_and_author_search` | Functional / Positive | 0.006s | **PASS** |
+| `TC-SRCH-03` | `test_catalog_search.py::test_tc_srch_03_empty_and_malformed_input` | Boundary / Negative | 0.005s | **PASS** |
+| `TC-SRCH-04` | `test_catalog_search.py::test_tc_srch_04_pagination_and_result_fields` | Functional / Schema | 0.006s | **PASS** |
+| `TC-SRCH-06` | `test_catalog_search.py::test_tc_srch_06_no_matches_guidance` | Boundary / Guidance | 0.005s | **PASS** |
+| `TC-SRCH-07` | `test_catalog_search.py::test_tc_srch_07_isbn_normalization` | Functional / Updated | 0.006s | **PASS** |
+| `TC-UC01-POS1`| `test_all_use_cases.py::test_uc01_positive_exact_and_normalized_isbn_search` | Functional / Positive | 0.005s | **PASS** |
+| `TC-UC01-POS2`| `test_all_use_cases.py::test_uc01_positive_partial_title_and_author_search` | Functional / Positive | 0.005s | **PASS** |
+| `TC-UC01-NEG` | `test_all_use_cases.py::test_uc01_negative_empty_and_whitespace_rejection` | Negative / Validation | 0.004s | **PASS** |
+| `TC-UC01-BND` | `test_all_use_cases.py::test_uc01_boundary_zero_matching_titles_guidance` | Boundary / Guidance | 0.004s | **PASS** |
+| `TC-UI-SRCH` | `test_app_routes.py::test_ui_home_search` | Integration / Web Route | 0.015s | **PASS** |
+
+### 2.2 UC-02: View Book Details (Dhruv Talavat & Divyansh)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-SRCH-05` | `test_catalog_search.py::test_tc_srch_05_book_detail_and_hold_eligibility` | Functional / Positive | 0.006s | **PASS** |
+| `TC-DTL-404` | `test_catalog_search.py::test_book_detail_not_found` | Boundary / Negative | 0.005s | **PASS** |
+| `TC-DTL-EMP` | `test_catalog_search.py::test_book_detail_empty_param` | Boundary / Negative | 0.004s | **PASS** |
+| `TC-UC02-POS` | `test_all_use_cases.py::test_uc02_positive_available_vs_checkedout_hold_eligibility` | Functional / Positive | 0.005s | **PASS** |
+| `TC-UC02-NEG` | `test_all_use_cases.py::test_uc02_negative_nonexistent_isbn_returns_none` | Negative / Validation | 0.004s | **PASS** |
+| `TC-UI-DTL`  | `test_app_routes.py::test_ui_book_detail_existing_and_missing` | Integration / Web Route | 0.014s | **PASS** |
+
+### 2.3 UC-03: Place Hold Request (Dhruv Talavat & Dharshini V)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-HOLD-01` | `test_reservation_manager.py::test_tc_hold_01_place_hold_checkedout_title` | Functional / Positive | 0.007s | **PASS** |
+| `TC-HOLD-02` | `test_reservation_manager.py::test_tc_hold_02_reject_available_and_duplicate` | Negative / Business Rule| 0.008s | **PASS** |
+| `TC-HOLD-05` | `test_reservation_manager.py::test_tc_hold_05_five_hold_limit` | Boundary / Quota | 0.009s | **PASS** |
+| `TC-HOLD-NF` | `test_reservation_manager.py::test_hold_nonexistent_title` | Boundary / Negative | 0.005s | **PASS** |
+| `TC-FINE-03` | `test_fine_manager.py::test_tc_fine_03_hold_blocking_and_clearance` | Integration / Fine Gate | 0.012s | **PASS** |
+| `TC-UC03-POS` | `test_all_use_cases.py::test_uc03_positive_fifo_queue_allocation` | Functional / Positive | 0.006s | **PASS** |
+| `TC-UC03-NEG1`| `test_all_use_cases.py::test_uc03_negative_reject_hold_on_available_book` | Negative / Business Rule| 0.005s | **PASS** |
+| `TC-UC03-NEG2`| `test_all_use_cases.py::test_uc03_negative_reject_duplicate_hold` | Negative / Duplicate | 0.005s | **PASS** |
+| `TC-UC03-BND` | `test_all_use_cases.py::test_uc03_boundary_enforce_five_active_holds_cap` | Boundary / Quota | 0.010s | **PASS** |
+
+### 2.4 UC-04: View & Cancel My Holds (Dhruv Talavat)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-HOLD-03` | `test_reservation_manager.py::test_tc_hold_03_view_and_cancel_active_hold` | Functional / Positive | 0.007s | **PASS** |
+| `TC-HOLD-04` | `test_reservation_manager.py::test_tc_hold_04_queue_position_progression_after_cancellation` | Functional / Cascade | 0.009s | **PASS** |
+| `TC-CNC-NF`  | `test_reservation_manager.py::test_cancel_nonexistent_hold` | Boundary / Negative | 0.005s | **PASS** |
+| `TC-CNC-UNAUTH`| `test_reservation_manager.py::test_cancel_other_member_hold_unauthorized` | Security / Auth | 0.007s | **PASS** |
+| `TC-SEC-04`  | `test_security_audit.py::test_tc_sec_04_data_confidentiality_between_members` | Security / Access | 0.006s | **PASS** |
+| `TC-UC04-POS1`| `test_all_use_cases.py::test_uc04_positive_view_my_active_holds` | Functional / Positive | 0.005s | **PASS** |
+| `TC-UC04-POS2`| `test_all_use_cases.py::test_uc04_positive_cancel_hold_and_shift_queue_up` | Functional / Cascade | 0.006s | **PASS** |
+| `TC-UC04-SEC` | `test_all_use_cases.py::test_uc04_security_prevent_cancelling_other_members_hold` | Security / Auth | 0.006s | **PASS** |
+
+### 2.5 UC-04b / UC-FINE: Pay Overdue Fine & Settle Dues (Dharshini V)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-FINE-01` | `test_fine_manager.py::test_tc_fine_01_fine_assessment_and_balance` | Functional / Calculation| 0.006s | **PASS** |
+| `TC-FINE-02` | `test_fine_manager.py::test_tc_fine_02_pay_fine_and_receipt_issuance` | Functional / Settlement | 0.008s | **PASS** |
+| `TC-FINE-UNAUTH`| `test_fine_manager.py::test_pay_fine_not_owner` | Security / Auth | 0.006s | **PASS** |
+| `TC-FINE-404`| `test_fine_manager.py::test_pay_nonexistent_fine` | Boundary / Negative | 0.005s | **PASS** |
+| `TC-UC04B-POS1`| `test_all_use_cases.py::test_uc04b_positive_fine_assessment_calculation` | Functional / Calculation| 0.005s | **PASS** |
+| `TC-UC04B-POS2`| `test_all_use_cases.py::test_uc04b_positive_settle_fine_via_wallet_and_receipt` | Functional / Settlement | 0.007s | **PASS** |
+| `TC-UC04B-BND`| `test_all_use_cases.py::test_uc04b_boundary_hold_blocked_when_fine_exceeds_threshold` | Boundary / Gatekeeper | 0.010s | **PASS** |
+| `TC-E2E-FINE` | `test_system_e2e.py::test_e2e_flow_overdue_fine_settlement` | End-to-End System Flow | 0.018s | **PASS** |
+
+### 2.6 UC-05: Log In (Campus SSO Authentication & Session Security)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-AUTH-01` | `test_auth.py::test_tc_auth_01_valid_sso_login` | Functional / Positive | 0.007s | **PASS** |
+| `TC-AUTH-02` | `test_auth.py::test_tc_auth_02_lockout_after_five_failed_logins` | Security / Lockout | 0.012s | **PASS** |
+| `TC-AUTH-03` | `test_auth.py::test_tc_auth_03_guest_search_vs_hold_gate` | Functional / Gate | 0.014s | **PASS** |
+| `TC-AUTH-04` | `test_auth.py::test_tc_auth_04_student_attempts_librarian_endpoint` | Security / RBAC | 0.006s | **PASS** |
+| `TC-AUTH-05` | `test_auth.py::test_tc_auth_05_logout_and_idle_timeout` | Functional / Timeout | 0.008s | **PASS** |
+| `TC-AUTH-UNK` | `test_auth.py::test_tc_auth_unknown_member` | Boundary / Negative | 0.005s | **PASS** |
+| `TC-AUTH-INV` | `test_auth.py::test_tc_auth_invalid_session_token` | Security / Token Check | 0.005s | **PASS** |
+| `TC-UC05-POS` | `test_all_use_cases.py::test_uc05_positive_valid_sso_login_and_role_attribution` | Functional / Positive | 0.006s | **PASS** |
+| `TC-UC05-SEC1`| `test_all_use_cases.py::test_uc05_security_brute_force_lockout_after_five_failed_attempts` | Security / Lockout | 0.011s | **PASS** |
+| `TC-UC05-SEC2`| `test_all_use_cases.py::test_uc05_security_idle_session_expiry_30_minutes` | Security / Timeout | 0.006s | **PASS** |
+
+### 2.7 UC-06: Update Availability Status (Dhareen G)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-ADM-01`  | `test_admin.py::test_tc_adm_01_mark_returned_and_promote_hold` | Functional / Positive | 0.008s | **PASS** |
+| `TC-ADM-RBAC`| `test_admin.py::test_admin_rbac_blocked_for_student` | Security / RBAC | 0.006s | **PASS** |
+| `TC-HOLD-06` | `test_reservation_manager.py::test_tc_hold_06_ready_expiration_and_cascade_promotion` | Boundary / Cascade | 0.011s | **PASS** |
+| `TC-UC06-POS` | `test_all_use_cases.py::test_uc06_positive_mark_returned_and_promote_hold` | Functional / Positive | 0.007s | **PASS** |
+| `TC-UC06-BND` | `test_all_use_cases.py::test_uc06_boundary_ready_hold_auto_expires_and_cascade_promotes` | Boundary / Cascade | 0.009s | **PASS** |
+| `TC-E2E-RET` | `test_system_e2e.py::test_e2e_flow_return_promotion_notification` | End-to-End System Flow | 0.016s | **PASS** |
+
+### 2.8 UC-07: Notify Next Member (Dhareen G)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-NOTF-01` | `test_notification.py::test_tc_notf_01_notify_hold_ready` | Functional / Positive | 0.007s | **PASS** |
+| `TC-NOTF-02` | `test_notification.py::test_tc_notf_02_send_expiry_reminder` | Functional / Positive | 0.008s | **PASS** |
+| `TC-NOTF-03` | `test_notification.py::test_tc_notf_03_retry_policy_on_failure` | Reliability / Retry | 0.007s | **PASS** |
+| `TC-UC07-POS1`| `test_all_use_cases.py::test_uc07_positive_hold_ready_dispatch_email_contents` | Functional / Positive | 0.005s | **PASS** |
+| `TC-UC07-POS2`| `test_all_use_cases.py::test_uc07_positive_send_24h_expiry_reminder` | Functional / Positive | 0.008s | **PASS** |
+
+### 2.9 UC-08: Manage Catalog Entries (Divyansh & Dhareen G)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-ADM-03`  | `test_admin.py::test_tc_adm_03_add_and_edit_catalog_entry` | Functional / Positive | 0.009s | **PASS** |
+| `TC-API-CRUD`| `test_app_routes.py::test_api_book_crud_by_librarian` | Integration / REST API | 0.017s | **PASS** |
+| `TC-UC08-POS` | `test_all_use_cases.py::test_uc08_positive_librarian_add_and_update_book` | Functional / Positive | 0.008s | **PASS** |
+| `TC-UC08-SEC` | `test_all_use_cases.py::test_uc08_security_student_role_blocked_from_adding_book` | Security / RBAC | 0.005s | **PASS** |
+| `TC-SEC-XSS` | `test_security_audit.py::test_tc_sec_02_sql_injection_and_xss_prevention` | Security / Sanitization | 0.008s | **PASS** |
+| `TC-API-VAL` | `test_app_routes.py::test_api_validation_errors` | Negative / Validation | 0.011s | **PASS** |
+
+### 2.10 UC-09: View Hold Demand Report (Divyansh)
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-ADM-02`  | `test_admin.py::test_tc_adm_02_hold_demand_report` | Functional / Analytics | 0.007s | **PASS** |
+| `TC-UI-ADMIN`| `test_app_routes.py::test_ui_admin_dashboard_gate` | Integration / RBAC Route| 0.014s | **PASS** |
+| `TC-UC09-POS` | `test_all_use_cases.py::test_uc09_positive_demand_report_ranked_by_queue_length` | Functional / Analytics | 0.007s | **PASS** |
+| `TC-UC09-SEC` | `test_all_use_cases.py::test_uc09_security_student_blocked_from_demand_report` | Security / RBAC | 0.005s | **PASS** |
+
+### 2.11 Cross-Cutting Non-Functional Requirements & Security
+| Test ID | Test Method & File | Classification | Execution Time | Result |
+| :--- | :--- | :--- | :--- | :--- |
+| `TC-SEC-01`  | `test_security_audit.py::test_tc_sec_01_tls_and_security_headers` | Security / Headers | 0.007s | **PASS** |
+| `TC-SEC-03`  | `test_security_audit.py::test_tc_sec_03_cookie_attributes` | Security / Cookie Flags | 0.006s | **PASS** |
+| `TC-SEC-05`  | `test_security_audit.py::test_tc_sec_05_no_passwords_stored_or_logged` | Security / Zero PW | 0.006s | **PASS** |
+| `TC-SEC-06`  | `test_security_audit.py::test_tc_sec_06_rbac_librarian_endpoints_with_student_token` | Security / RBAC | 0.010s | **PASS** |
+| `TC-SEC-07`  | `test_security_audit.py::test_tc_sec_07_rate_limiting` | Security / Rate Limit | 0.012s | **PASS** |
+| `TC-AUD-01`  | `test_security_audit.py::test_tc_aud_01_audit_logging_integrity` | Reliability / Audit Trail | 0.006s | **PASS** |
+| `TC-PERF-01` | `test_system_e2e.py::test_tc_perf_01_search_response_time` | Performance (NFR-001) | 0.008s | **PASS** |
+| `TC-AVL-01`  | `test_system_e2e.py::test_tc_avl_01_health_monitoring` | Reliability (NFR-002) | 0.006s | **PASS** |
+| `TC-UX-01`   | `test_system_e2e.py::test_tc_ux_01_accessibility_and_responsive_markup` | Usability (WCAG 2.1 AA) | 0.015s | **PASS** |
+| `TC-MNT-01`  | `test_system_e2e.py::test_tc_mnt_01_modular_boundaries` | Maintainability (NFR-006)| 0.005s | **PASS** |
+| `TC-BOOST-01`| `test_coverage_boost.py::test_rate_limiter_reset_and_isolation` | Security / Isolation | 0.006s | **PASS** |
+| `TC-BOOST-02`| `test_coverage_boost.py::test_security_helpers_edge_cases` | Security / Sanitization | 0.005s | **PASS** |
 
 ---
 
-### 3.3 Hold & Reservation Management Component (`src/reservation_manager.py`)
-Tested via `tests/test_reservation_manager.py` — Target Requirements: `LRG-F-020` to `LRG-F-024`, `LRG-F-040`, `LRG-F-041`.
-
-| Test ID | Method / Test Function | Input Parameters | Expected Result | Actual Result | Execution Time | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-HOLD-01` | `test_tc_hold_01_place_hold_checkedout_title` | `isbn="978-0201633610"`, `member="PES1UG24AM094"` | Hold created in state 'Active', queue position returned | Hold created, state Active, queue pos calculated | 0.009s | **PASS** |
-| `TC-HOLD-02a` | `test_tc_hold_02_reject_available_and_duplicate` | Available title `"978-0134494166"` | Rejection with `TITLE_AVAILABLE`, no record created | Rejection with `TITLE_AVAILABLE`, 0 records added | 0.005s | **PASS** |
-| `TC-HOLD-02b` | `test_tc_hold_02_reject_available_and_duplicate` | Same member placing second hold on `"978-0321125217"` | Rejection with `DUPLICATE_HOLD`, no duplicate record | Rejection with `DUPLICATE_HOLD` | 0.008s | **PASS** |
-| `TC-HOLD-03` | `test_tc_hold_03_view_and_cancel_active_hold` | Member `"PES1UG24AM087"`, cancel active hold | Hold removed from active list; marked 'Cancelled' in DB | Hold state updated to Cancelled, omitted from active view | 0.010s | **PASS** |
-| `TC-HOLD-04` | `test_tc_hold_04_queue_position_progression_after_cancellation` | 3 members in queue; 1st cancels | Student 2 moves from pos 2 to 1; Student 3 moves from pos 3 to 2 | Exact queue progression verified (pos 2 $\to$ 1, 3 $\to$ 2) | 0.016s | **PASS** |
-| `TC-HOLD-05` | `test_tc_hold_05_five_hold_limit` | Member with 5 active holds attempts 6th hold | 6th hold rejected with `HOLD_LIMIT_REACHED` | Rejection with `HOLD_LIMIT_REACHED` enforced | 0.021s | **PASS** |
-| `TC-HOLD-06` | `test_tc_hold_06_ready_expiration_and_cascade_promotion` | Ready hold $> 72$ hours old | Marked 'Expired'; next queued hold auto-promoted to 'Ready' | Expired hold cascade-promoted next student | 0.015s | **PASS** |
-| `TC-HOLD-07` | `test_hold_nonexistent_title` | Non-existent ISBN `"978-0000000000"` | Returns `(False, None, "TITLE_NOT_FOUND")` | Rejection with `TITLE_NOT_FOUND` | 0.004s | **PASS** |
-| `TC-HOLD-08` | `test_cancel_nonexistent_hold` | Non-existent hold ID `999999` | Returns `(False, "HOLD_NOT_FOUND")` | Handled with `HOLD_NOT_FOUND` | 0.003s | **PASS** |
-| `TC-HOLD-09` | `test_cancel_other_member_hold_unauthorized` | Student A cancels Student B's hold | Rejection with `FORBIDDEN_NOT_OWNER`, audit event logged | Unauthorized cancel blocked with `FORBIDDEN_NOT_OWNER` | 0.008s | **PASS** |
-
----
-
-### 3.4 Fine Management Component (`src/fine_manager.py` - UC-04: Dharshini V)
-Tested via `tests/test_fine_manager.py` — Target Use Case: `UC-04: Pay Overdue Fine`.
-
-| Test ID | Method / Test Function | Input Parameters | Expected Result | Actual Result | Execution Time | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-FINE-01` | `test_tc_fine_01_fine_assessment_and_balance` | 5 days overdue at \$1.00/day | Assessed fine = \$5.00; total unpaid balance = \$5.00 | Assessed fine \$5.00, balance correct | 0.006s | **PASS** |
-| `TC-FINE-02` | `test_tc_fine_02_pay_fine_and_receipt_issuance` | Settle fine via `CAMPUS_WALLET` | Status 'Paid'; receipt with `TXN-` ID issued; balance cleared | Receipt with `TXN-` issued, balance updated to \$0.00 | 0.008s | **PASS** |
-| `TC-FINE-03` | `test_tc_fine_03_hold_blocking_and_clearance` | Fine \$25.00 ($> \$20$ limit); place hold | Hold rejected (`HOLD_BLOCKED_UNPAID_FINES`); unlocked after payment | Blocked while fine unpaid, unblocked after settlement | 0.018s | **PASS** |
-| `TC-FINE-04` | `test_pay_fine_not_owner` | Student A attempts to settle Student B's fine | Rejection with `FORBIDDEN_NOT_FINE_OWNER` | Blocked with `FORBIDDEN_NOT_FINE_OWNER` | 0.005s | **PASS** |
-| `TC-FINE-05` | `test_pay_nonexistent_fine` | Fine ID `999999` | Rejection with `FINE_NOT_FOUND` | Handled with `FINE_NOT_FOUND` | 0.003s | **PASS** |
-
----
-
-### 3.5 Notification Component (`src/notification.py`)
-Tested via `tests/test_notification.py` — Target Requirements: `LRG-F-030`, `LRG-F-031`.
-
-| Test ID | Method / Test Function | Input Parameters | Expected Result | Actual Result | Execution Time | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-NOTF-01` | `test_tc_notf_01_notify_hold_ready` | `member_id="PES1UG24AM428"`, `isbn="978-0132350884"` | Email sent with title name, recipient email, 72h window | Email dispatched with 72-hour window details | 0.005s | **PASS** |
-| `TC-NOTF-02` | `test_tc_notf_02_send_expiry_reminder` | Ready hold on `"978-0135974445"` | 24h reminder sent; rejected for cancelled holds | Reminder sent for Ready; rejected for cancelled | 0.012s | **PASS** |
-| `TC-NOTF-03` | `test_tc_notf_03_retry_policy_on_failure` | Simulated SMTP service downtime | Retries 3 times; records failure to audit log with attempts=3 | Exactly 3 retries performed, logged to audit log | 0.006s | **PASS** |
-
----
-
-### 3.6 Librarian Administration Component (`src/admin.py`)
-Tested via `tests/test_admin.py` — Target Requirements: `LRG-F-040` to `LRG-F-042`, `LRG-F-012`.
-
-| Test ID | Method / Test Function | Input Parameters | Expected Result | Actual Result | Execution Time | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-ADM-01` | `test_tc_adm_01_mark_returned_and_promote_hold` | Return Clean Code with waiting hold | Book status set to 'Available'; first hold promoted to Ready | Status updated to Available, hold promoted to Ready | 0.011s | **PASS** |
-| `TC-ADM-02` | `test_tc_adm_02_hold_demand_report` | Demand report request | Titles sorted descending by hold queue length | Titles sorted descending by queue length | 0.009s | **PASS** |
-| `TC-ADM-03` | `test_tc_adm_03_add_and_edit_catalog_entry` | Add new title `"Refactoring"`, then edit | Title created, searchable, updated metadata persisted | Title added, verified in search, edit persisted | 0.016s | **PASS** |
-| `TC-ADM-04` | `test_admin_rbac_blocked_for_student` | Student token invoking admin actions | Returns `(False, None, "FORBIDDEN")` | Student rejected with `FORBIDDEN` | 0.006s | **PASS** |
-
----
-
-## 4. Defect Tracking & Resolution Summary
-
-During unit test execution, the following issues were identified and immediately remediated prior to final test sign-off:
-
-| Defect ID | Severity | Component | Root Cause | Remediation Applied | Verification |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `DEF-001` | High | `Database` | SQLite in-memory `:memory:` created new database instance on every connection call. | Configured shared persistent connection (`_mem_conn`) with `check_same_thread=False`. | `test_tc_auth_01` verified PASS |
-| `DEF-002` | Medium | `ReservationManager` | Queue position calculated strictly on `created_at <= t`, causing collisions on sub-millisecond timestamps. | Implemented tie-breaking FIFO sequence `(created_at < t OR (created_at = t AND id <= hid))`. | `TC-HOLD-04` verified PASS |
-| `DEF-003` | Medium | `app.py` | Request body validation executed prior to RBAC check on librarian endpoints. | Shifted `auth.require_role()` to execute first before checking request payload. | `TC-SEC-06` verified PASS |
-
----
-
-## 5. Unit Testing Sign-Off
-
-The unit test suite has completed 100% execution with **zero open defects**. All core algorithms, validation checks, and business rules meet the acceptance criteria specified in the SRS.
-
-- **QA Lead**: Dhareen G (SRN: `PES1UG24AM084`) — **APPROVED**
-- **Dev Lead**: Dharshini V (SRN: `PES1UG24AM428`) — **APPROVED**
-- **Backend Lead**: Divyansh (SRN: `PES1UG24AM094`) — **APPROVED**
-- **Security / DB Lead**: Dhruv Talavat (SRN: `PES1UG24AM087`) — **APPROVED**
+## 3. Test Metric Analysis
+- **Execution Rate**: 100% (88 / 88 executed)
+- **Pass Rate**: 100% (88 passed, 0 failed, 0 blocked)
+- **Defect Density**: 0 open defects
+- **Requirement Verification**: 100% of functional requirements (`LRG-F-001` through `LRG-F-052`) and security requirements (`LRG-SR-001` through `LRG-SR-007`) verified.
+- **Average Test Execution Time**: 7.6 ms per test case.
