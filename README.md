@@ -27,7 +27,7 @@ Comprehensive collaborative repository for the **Software Engineering Lab Projec
 
 Strictly maintained in **this single GitHub repository** as required by the course coordinator:
 
-### 1. Deliverable 1: Requirements, UML, Jira, Architecture & Analysis (Labs 1–5)
+### 1. Deliverable 1: Requirements, UML, Jira, Architecture & Quality Analysis (Labs 1–6)
 - **Lab 1**: Requirements Engineering, Functional/Non-Functional Specifications, and UML Use Case Modeling.
 - **Lab 2**: Jira Agile Backlog, Fibonacci Story Points, and Sprint Execution.
 - **Lab 3**: UML Component Architecture, Provided/Required Interfaces, and Architectural Decision Records (ADRs).
@@ -38,9 +38,15 @@ Strictly maintained in **this single GitHub repository** as required by the cour
   - [Lab-04-VibeCoding/](file:///Lab-04-VibeCoding/) — VibeCoding game enhancement and documentation deliverables.
 - **Lab 5**: Static Code Analysis (Pylint, Bandit, Flake8) — AST security hardening, PEP 8 styling, and code quality optimization.
   - [Lab-05-Static-Code-Analysis/PES1UG24AM428/car_rental.py](file:///Lab-05-Static-Code-Analysis/PES1UG24AM428/car_rental.py) — Cleaned Python code (**Pylint: 10.00/10**, **Bandit: 0 issues**, **Flake8: 0 violations**).
+├── Lab-06-Code-Branch-Coverage/       <-- Lab 6 Code & Branch Coverage (pytest & coverage)
   - [Lab-05-Static-Code-Analysis/PES1UG24AM428/issues.md](file:///Lab-05-Static-Code-Analysis/PES1UG24AM428/issues.md) — 13 documented issues with severity, CWE, and fix strategies.
   - [Lab-05-Static-Code-Analysis/PES1UG24AM428/reflection.md](file:///Lab-05-Static-Code-Analysis/PES1UG24AM428/reflection.md) — Complete reflection report on tooling, prioritization, and CI/CD.
   - Standalone dedicated repo: [https://github.com/DharshiniPES/L5_56_car-rental](https://github.com/DharshiniPES/L5_56_car-rental) (with 3 distinct commits for Bandit, Pylint, and Flake8).
+- **Lab 6**: Code and Branch Coverage Analysis (pytest & coverage) — Complete statement and decision coverage.
+  - [Lab-06-Code-Branch-Coverage/PES1UG24AM428/course_registration.py](file:///Lab-06-Code-Branch-Coverage/PES1UG24AM428/course_registration.py) — Application module under test.
+  - [Lab-06-Code-Branch-Coverage/PES1UG24AM428/CodeCoverageTest_course_registration.py](file:///Lab-06-Code-Branch-Coverage/PES1UG24AM428/CodeCoverageTest_course_registration.py) — **100% Line Coverage** suite.
+  - [Lab-06-Code-Branch-Coverage/PES1UG24AM428/BranchCoverageTest_course_registration.py](file:///Lab-06-Code-Branch-Coverage/PES1UG24AM428/BranchCoverageTest_course_registration.py) — **100% Branch Coverage** suite (41 boundary/decision tests).
+  - Standalone dedicated repo: [https://github.com/DharshiniPES/L6_L7_56_course_registration](https://github.com/DharshiniPES/L6_L7_56_course_registration) (with 2 distinct commits for code & branch coverage).
 
 ### 2. Deliverable 2: Software Implementation & Sprints 1, 2, and 3
 - Working modular web application built with **Python / Flask** and **SQLite** (relational engine with foreign key enforcement and transactional integrity):
