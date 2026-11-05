@@ -47,6 +47,11 @@ Strictly maintained in **this single GitHub repository** as required by the cour
   - [Lab-06-Code-Branch-Coverage/PES1UG24AM428/CodeCoverageTest_course_registration.py](file:///Lab-06-Code-Branch-Coverage/PES1UG24AM428/CodeCoverageTest_course_registration.py) — **100% Line Coverage** suite.
   - [Lab-06-Code-Branch-Coverage/PES1UG24AM428/BranchCoverageTest_course_registration.py](file:///Lab-06-Code-Branch-Coverage/PES1UG24AM428/BranchCoverageTest_course_registration.py) — **100% Branch Coverage** suite (41 boundary/decision tests).
   - Standalone dedicated repo: [https://github.com/DharshiniPES/L6_L7_56_course_registration](https://github.com/DharshiniPES/L6_L7_56_course_registration) (with 2 distinct commits for code & branch coverage).
+- **Lab 7**: Fuzzing for Input Validation Bugs (Hypothesis Property-Based Testing) — Input hardening and vulnerability discovery.
+  - [Lab-07-Fuzzing-Hypothesis/PES1UG24AM428/course_registration_parser.py](file:///Lab-07-Fuzzing-Hypothesis/PES1UG24AM428/course_registration_parser.py) — Hardened & defensive parser module.
+  - [Lab-07-Fuzzing-Hypothesis/PES1UG24AM428/test_course_registration_parser.py](file:///Lab-07-Fuzzing-Hypothesis/PES1UG24AM428/test_course_registration_parser.py) — **Hypothesis Fuzzing Suite** (@given(st.text() | st.none())).
+  - [Lab-07-Fuzzing-Hypothesis/PES1UG24AM428/PES1UG24AM428_DHARSHINI_V_LAB7.pdf](file:///Lab-07-Fuzzing-Hypothesis/PES1UG24AM428/PES1UG24AM428_DHARSHINI_V_LAB7.pdf) — Complete official Lab 7 submission report.
+  - Standalone dedicated repo: [https://github.com/DharshiniPES/L6_L7_56_course_registration](https://github.com/DharshiniPES/L6_L7_56_course_registration) (under LAB7/).
 
 ### 2. Deliverable 2: Software Implementation & Sprints 1, 2, and 3
 - Working modular web application built with **Python / Flask** and **SQLite** (relational engine with foreign key enforcement and transactional integrity):
