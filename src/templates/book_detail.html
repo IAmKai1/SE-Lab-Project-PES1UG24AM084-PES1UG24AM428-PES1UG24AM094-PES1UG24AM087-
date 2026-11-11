@@ -39,6 +39,12 @@
                     <dt>Publication Year</dt>
                     <dd>{{ book.year }}</dd>
 
+                    <dt>Subject</dt>
+                    <dd><a href="{{ url_for('ui_home', subject=book.subject) }}">{{ book.subject }}</a></dd>
+
+                    <dt>Difficulty</dt>
+                    <dd><a href="{{ url_for('ui_home', difficulty=book.difficulty) }}">{{ book.difficulty }}</a></dd>
+
                     <dt>Availability State</dt>
                     <dd>
                         {% if book.status == 'Available' %}

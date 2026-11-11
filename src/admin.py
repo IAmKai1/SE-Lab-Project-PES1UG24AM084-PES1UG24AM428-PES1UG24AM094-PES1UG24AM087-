@@ -53,14 +53,18 @@ class LibrarianAdminService:
         publisher: str,
         year: int,
         status: str,
-        token: Optional[str]
+        token: Optional[str],
+        subject: str = "General",
+        difficulty: str = "Intermediate"
     ) -> Tuple[bool, Optional[str], Optional[str]]:
         """Librarian endpoint: Add new title to catalog (LRG-F-042, TC-ADM-03)."""
         auth_ok, user, err = self._verify_librarian(token)
         if not auth_ok:
             return False, None, err
 
-        ok, isbn_res, add_err = self.catalog.add_title(isbn, title, author, publisher, year, status)
+        ok, isbn_res, add_err = self.catalog.add_title(
+            isbn, title, author, publisher, year, status, subject=subject, difficulty=difficulty
+        )
         if ok:
             self.audit.log_event(user["member_id"], "ADD_CATALOG_ENTRY", "TITLES", f"Added '{title}' (ISBN: {isbn})")
         return ok, isbn_res, add_err
@@ -72,14 +76,18 @@ class LibrarianAdminService:
         author: str,
         publisher: str,
         year: int,
-        token: Optional[str]
+        token: Optional[str],
+        subject: Optional[str] = None,
+        difficulty: Optional[str] = None
     ) -> Tuple[bool, Optional[str]]:
         """Librarian endpoint: Edit existing title metadata (LRG-F-042, TC-ADM-03)."""
         auth_ok, user, err = self._verify_librarian(token)
         if not auth_ok:
             return False, err
 
-        ok, edit_err = self.catalog.edit_title(isbn, title, author, publisher, year)
+        ok, edit_err = self.catalog.edit_title(
+            isbn, title, author, publisher, year, subject=subject, difficulty=difficulty
+        )
         if ok:
             self.audit.log_event(user["member_id"], "EDIT_CATALOG_ENTRY", "TITLES", f"Updated metadata for ISBN {isbn}")
         return ok, edit_err

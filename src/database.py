@@ -7,6 +7,8 @@ import sqlite3
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
+from src.catalog_seed import EXTENDED_TITLES
+
 
 SCHEMA_SQL = """
 PRAGMA foreign_keys = ON;
@@ -17,7 +19,9 @@ CREATE TABLE IF NOT EXISTS titles (
     author TEXT NOT NULL,
     publisher TEXT,
     year INTEGER,
-    status TEXT NOT NULL CHECK(status IN ('Available', 'CheckedOut')) DEFAULT 'Available'
+    status TEXT NOT NULL CHECK(status IN ('Available', 'CheckedOut')) DEFAULT 'Available',
+    subject TEXT NOT NULL DEFAULT 'General',
+    difficulty TEXT NOT NULL CHECK(difficulty IN ('Beginner', 'Intermediate', 'Advanced')) DEFAULT 'Intermediate'
 );
 
 CREATE TABLE IF NOT EXISTS members (
@@ -78,6 +82,33 @@ CREATE INDEX IF NOT EXISTS idx_fines_member ON fines(member_id, status);
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp);
 """
 
+# Created after the browse-column migration so older database files don't fail on them.
+BROWSE_INDEX_SQL = """
+CREATE INDEX IF NOT EXISTS idx_titles_subject ON titles(subject);
+CREATE INDEX IF NOT EXISTS idx_titles_difficulty ON titles(difficulty);
+"""
+
+DIFFICULTY_LEVELS = ("Beginner", "Intermediate", "Advanced")
+
+# Subject and difficulty for the seeded titles, used for browsing without a search term.
+TITLE_CLASSIFICATION = {
+    "978-0132350884": ("Software Engineering", "Beginner"),
+    "978-0201633610": ("Software Design & Architecture", "Advanced"),
+    "978-0134494166": ("Software Design & Architecture", "Intermediate"),
+    "978-0321125217": ("Software Design & Architecture", "Advanced"),
+    "978-0596007126": ("Software Design & Architecture", "Beginner"),
+    "978-0135974445": ("Software Engineering", "Beginner"),
+    "978-0321146533": ("Software Testing", "Beginner"),
+    "978-1449373320": ("Databases & Data Systems", "Advanced"),
+    "978-0262033848": ("Algorithms & Data Structures", "Advanced"),
+    "978-0131103627": ("Programming Languages", "Beginner"),
+    "978-0321751041": ("Algorithms & Data Structures", "Advanced"),
+    "978-0136291558": ("Operating Systems", "Intermediate"),
+    "978-0130661029": ("Databases & Data Systems", "Intermediate"),
+    "978-1491950357": ("Software Design & Architecture", "Intermediate"),
+    "978-0321503626": ("Software Testing", "Intermediate"),
+}
+
 INITIAL_TITLES = [
     ("978-0132350884", "Clean Code: A Handbook of Agile Software Craftsmanship", "Robert C. Martin", "Prentice Hall", 2008, "CheckedOut"),
     ("978-0201633610", "Design Patterns: Elements of Reusable Object-Oriented Software", "Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides", "Addison-Wesley", 1994, "CheckedOut"),
@@ -129,16 +160,60 @@ class Database:
     def _init_db(self) -> None:
         with self.get_connection() as conn:
             conn.executescript(SCHEMA_SQL)
+            self._migrate_browse_columns(conn)
+            conn.executescript(BROWSE_INDEX_SQL)
             # Check if seed data exists
             cur = conn.execute("SELECT COUNT(*) FROM members;")
             if cur.fetchone()[0] == 0:
                 self._seed_data(conn)
+            self._load_extended_catalog(conn)
+
+    @staticmethod
+    def _load_extended_catalog(conn: sqlite3.Connection) -> None:
+        """Add the extended demo catalog. INSERT OR IGNORE keeps existing rows (and any
+        librarian edits) untouched, so older database files simply gain the new titles."""
+        rows = [
+            (isbn, title, author, publisher, year,
+             "CheckedOut" if i % 5 in (1, 3) else "Available", subject, difficulty)
+            for i, (isbn, title, author, publisher, year, subject, difficulty) in enumerate(EXTENDED_TITLES)
+        ]
+        conn.executemany(
+            "INSERT OR IGNORE INTO titles (isbn, title, author, publisher, year, status, subject, difficulty) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
+            rows
+        )
+        conn.commit()
+
+    def _migrate_browse_columns(self, conn: sqlite3.Connection) -> None:
+        """Add subject/difficulty to database files created before these columns existed."""
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(titles);")}
+        added = False
+        if "subject" not in cols:
+            conn.execute("ALTER TABLE titles ADD COLUMN subject TEXT NOT NULL DEFAULT 'General';")
+            added = True
+        if "difficulty" not in cols:
+            conn.execute(
+                "ALTER TABLE titles ADD COLUMN difficulty TEXT NOT NULL "
+                "CHECK(difficulty IN ('Beginner', 'Intermediate', 'Advanced')) DEFAULT 'Intermediate';"
+            )
+            added = True
+        if added:
+            self._apply_classification(conn)
+            conn.commit()
+
+    @staticmethod
+    def _apply_classification(conn: sqlite3.Connection) -> None:
+        conn.executemany(
+            "UPDATE titles SET subject = ?, difficulty = ? WHERE isbn = ?;",
+            [(subj, diff, isbn) for isbn, (subj, diff) in TITLE_CLASSIFICATION.items()]
+        )
 
     def _seed_data(self, conn: sqlite3.Connection) -> None:
         conn.executemany(
             "INSERT INTO titles (isbn, title, author, publisher, year, status) VALUES (?, ?, ?, ?, ?, ?);",
             INITIAL_TITLES
         )
+        self._apply_classification(conn)
         conn.executemany(
             "INSERT INTO members (id, name, email, role, failed_attempts, locked_until) VALUES (?, ?, ?, ?, 0, 0);",
             INITIAL_MEMBERS

@@ -3,9 +3,41 @@
 {% block title %}Search Catalog - Digital Campus Library Gateway{% endblock %}
 
 {% block content %}
+{% macro book_card(book) %}
+<article class="book-card">
+    <div class="book-card-header">
+        <span class="badge {% if book.status == 'Available' %}badge-available{% else %}badge-checkedout{% endif %}">
+            {{ book.status }}
+        </span>
+        <span class="isbn-tag">ISBN: {{ book.isbn }}</span>
+    </div>
+    <h3 class="book-title">
+        <a href="{{ url_for('ui_book_detail', isbn=book.isbn) }}">{{ book.title }}</a>
+    </h3>
+    <p class="book-author">By: <strong>{{ book.author }}</strong></p>
+    <p class="book-publisher">Publisher: {{ book.publisher }} ({{ book.year }})</p>
+    <p class="book-tags">
+        <span class="tag tag-subject">{{ book.subject }}</span>
+        <span class="tag tag-level tag-{{ book.difficulty | lower }}">{{ book.difficulty }}</span>
+    </p>
+    <div class="book-card-footer">
+        <a href="{{ url_for('ui_book_detail', isbn=book.isbn) }}" class="btn btn-outline-sm">View Details</a>
+        {% if book.status == 'CheckedOut' %}
+            {% if user %}
+                <button type="button" class="btn btn-accent-sm" onclick="placeHold('{{ book.isbn }}')">Place Hold</button>
+            {% else %}
+                <a href="{{ url_for('ui_login', next='/book/' ~ book.isbn) }}" class="btn btn-accent-sm">Login to Hold</a>
+            {% endif %}
+        {% else %}
+            <span class="avail-note">Available at circulation desk</span>
+        {% endif %}
+    </div>
+</article>
+{% endmacro %}
+
 <section class="hero-section" aria-labelledby="hero-heading">
     <h1 id="hero-heading" class="hero-title">Campus Library Catalog & Hold Gateway</h1>
-    <p class="hero-subtitle">Search over 100,000 titles by title, author, or ISBN. Place and track hold reservations instantly.</p>
+    <p class="hero-subtitle">Search by title, author, or ISBN, or browse the whole catalog by subject and difficulty below. Place and track hold reservations instantly.</p>
 
     <div class="search-box-card">
         <form action="{{ url_for('ui_home') }}" method="GET" class="search-form" role="search">
@@ -43,39 +75,13 @@
         {% if search_result %}
             <p class="results-meta">Page {{ search_result.page }} of {{ search_result.totalPages }} (Total matches: {{ search_result.total }})</p>
         {% endif %}
+        <p><a href="{{ url_for('ui_home') }}" class="btn btn-outline-sm">Browse all books instead</a></p>
     </div>
 
     {% if search_result and search_result.results %}
         <div class="book-grid">
             {% for book in search_result.results %}
-                <article class="book-card">
-                    <div class="book-card-header">
-                        <span class="badge {% if book.status == 'Available' %}badge-available{% else %}badge-checkedout{% endif %}">
-                            {{ book.status }}
-                        </span>
-                        <span class="isbn-tag">ISBN: {{ book.isbn }}</span>
-                    </div>
-                    <h3 class="book-title">
-                        <a href="{{ url_for('ui_book_detail', isbn=book.isbn) }}">{{ book.title }}</a>
-                    </h3>
-                    <p class="book-author">By: <strong>{{ book.author }}</strong></p>
-                    <p class="book-publisher">Publisher: {{ book.publisher }} ({{ book.year }})</p>
-                    <div class="book-card-footer">
-                        <a href="{{ url_for('ui_book_detail', isbn=book.isbn) }}" class="btn btn-outline-sm">View Details</a>
-                        {% if book.status == 'CheckedOut' %}
-                            {% if user %}
-                                <form action="/api/v1/holds" method="POST" style="display:inline;">
-                                    <input type="hidden" name="isbn" value="{{ book.isbn }}">
-                                    <button type="button" class="btn btn-accent-sm" onclick="placeHold('{{ book.isbn }}')">Place Hold</button>
-                                </form>
-                            {% else %}
-                                <a href="{{ url_for('ui_login', next='/book/' ~ book.isbn) }}" class="btn btn-accent-sm">Login to Hold</a>
-                            {% endif %}
-                        {% else %}
-                            <span class="avail-note">Available at circulation desk</span>
-                        {% endif %}
-                    </div>
-                </article>
+                {{ book_card(book) }}
             {% endfor %}
         </div>
 
@@ -99,7 +105,108 @@
                 <li>Check for typos or spelling errors.</li>
                 <li>Try searching by general keywords instead of full titles.</li>
                 <li>Switch the filter option to "All Fields".</li>
+                <li><a href="{{ url_for('ui_home') }}">Browse the catalog by subject and difficulty</a>.</li>
             </ul>
+        </div>
+    {% endif %}
+</section>
+{% elif browse_result %}
+{% set f = browse_result.filters %}
+<section class="browse-section" aria-labelledby="browse-heading">
+    <div class="results-header">
+        <h2 id="browse-heading">Browse the Catalog</h2>
+        <p class="results-meta">Not sure what you're looking for? Pick a subject, a difficulty level, or show only books you can take home today.</p>
+    </div>
+
+    <form action="{{ url_for('ui_home') }}" method="GET" class="browse-filters" aria-label="Browse filters">
+        <fieldset class="filter-group">
+            <legend>Subject</legend>
+            <div class="chip-row">
+                <label class="chip">
+                    <input type="radio" name="subject" value="" {% if not f.subject %}checked{% endif %} onchange="this.form.submit()">
+                    <span>All subjects</span>
+                </label>
+                {% for s in facets.subjects %}
+                <label class="chip">
+                    <input type="radio" name="subject" value="{{ s.name }}" {% if f.subject == s.name %}checked{% endif %} onchange="this.form.submit()">
+                    <span>{{ s.name }} <small>({{ s.count }})</small></span>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <fieldset class="filter-group">
+            <legend>Difficulty</legend>
+            <div class="chip-row">
+                <label class="chip">
+                    <input type="radio" name="difficulty" value="" {% if not f.difficulty %}checked{% endif %} onchange="this.form.submit()">
+                    <span>Any level</span>
+                </label>
+                {% for d in facets.difficulties %}
+                <label class="chip chip-{{ d.name | lower }}">
+                    <input type="radio" name="difficulty" value="{{ d.name }}" {% if f.difficulty == d.name %}checked{% endif %} onchange="this.form.submit()">
+                    <span>{{ d.name }} <small>({{ d.count }})</small></span>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <div class="filter-row">
+            <div class="filter-field">
+                <label for="availability-filter">Availability</label>
+                <select id="availability-filter" name="availability" class="form-select filter-select" onchange="this.form.submit()">
+                    <option value="" {% if not f.availability %}selected{% endif %}>All books</option>
+                    <option value="Available" {% if f.availability == 'Available' %}selected{% endif %}>Available now</option>
+                    <option value="CheckedOut" {% if f.availability == 'CheckedOut' %}selected{% endif %}>Checked out (can hold)</option>
+                </select>
+            </div>
+            <div class="filter-field">
+                <label for="sort-filter">Sort by</label>
+                <select id="sort-filter" name="sort" class="form-select filter-select" onchange="this.form.submit()">
+                    <option value="title" {% if browse_result.sort == 'title' %}selected{% endif %}>Title (A–Z)</option>
+                    <option value="author" {% if browse_result.sort == 'author' %}selected{% endif %}>Author (A–Z)</option>
+                    <option value="difficulty" {% if browse_result.sort == 'difficulty' %}selected{% endif %}>Easiest first</option>
+                    <option value="newest" {% if browse_result.sort == 'newest' %}selected{% endif %}>Newest first</option>
+                    <option value="oldest" {% if browse_result.sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <noscript><button type="submit" class="btn btn-primary">Apply filters</button></noscript>
+                {% if f.subject or f.difficulty or f.availability or browse_result.sort != 'title' %}
+                    <a href="{{ url_for('ui_home') }}" class="btn btn-outline-sm">Clear filters</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    <p class="results-meta" aria-live="polite">
+        Showing {{ browse_result.results | length }} of {{ browse_result.total }} book(s)
+        {% if browse_result.totalPages > 1 %}— page {{ browse_result.page }} of {{ browse_result.totalPages }}{% endif %}
+    </p>
+
+    {% if browse_result.results %}
+        <div class="book-grid">
+            {% for book in browse_result.results %}
+                {{ book_card(book) }}
+            {% endfor %}
+        </div>
+
+        {% if browse_result.totalPages > 1 %}
+            <nav class="pagination-nav" aria-label="Catalog pagination">
+                {% if browse_result.page > 1 %}
+                    <a href="{{ url_for('ui_home', subject=f.subject, difficulty=f.difficulty, availability=f.availability, sort=browse_result.sort, page=browse_result.page - 1) }}" class="btn btn-page">« Previous</a>
+                {% endif %}
+                <span class="page-indicator">Page {{ browse_result.page }} / {{ browse_result.totalPages }}</span>
+                {% if browse_result.page < browse_result.totalPages %}
+                    <a href="{{ url_for('ui_home', subject=f.subject, difficulty=f.difficulty, availability=f.availability, sort=browse_result.sort, page=browse_result.page + 1) }}" class="btn btn-page">Next »</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="empty-state-card" role="status">
+            <span class="empty-icon">📚</span>
+            <h3>No books match these filters</h3>
+            <p>Try a different subject or difficulty level, or <a href="{{ url_for('ui_home') }}">clear all filters</a>.</p>
         </div>
     {% endif %}
 </section>

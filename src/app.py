@@ -24,7 +24,7 @@ from src.notification import NotificationService
 from src.fine_manager import FineManager
 from src.reservation_manager import ReservationManager
 from src.admin import LibrarianAdminService
-from src.security import RateLimiter, validate_isbn, sanitize_input
+from src.security import RateLimiter, validate_isbn, sanitize_input, sanitize_search_query
 
 
 def create_app(
@@ -95,6 +95,12 @@ def create_app(
             return auth_header[7:].strip()
         return session.get("auth_token") or request.cookies.get("lrg_session")
 
+    def _int_arg(name: str, default: int) -> int:
+        try:
+            return int(request.args.get(name, default))
+        except (TypeError, ValueError):
+            return default
+
     # -------------------------------------------------------------
     # REST API Endpoints (SAD 4.3)
     # -------------------------------------------------------------
@@ -116,6 +122,24 @@ def create_app(
         if not ok:
             return jsonify({"error": "INVALID_QUERY", "message": err}), 400
         return jsonify(result), 200
+
+    # Browse the whole catalog with optional subject / difficulty / availability filters
+    @app.route("/api/v1/catalog", methods=["GET"])
+    def api_browse_catalog():
+        result = catalog.browse(
+            query=sanitize_search_query(request.args.get("q", "")),
+            subject=request.args.get("subject", ""),
+            difficulty=request.args.get("difficulty", ""),
+            availability=request.args.get("availability", ""),
+            sort=request.args.get("sort", "title"),
+            page=_int_arg("page", 1),
+            page_size=_int_arg("pageSize", 12),
+        )
+        return jsonify(result), 200
+
+    @app.route("/api/v1/catalog/facets", methods=["GET"])
+    def api_catalog_facets():
+        return jsonify(catalog.get_facets()), 200
 
     @app.route("/api/v1/books/<isbn>", methods=["GET"])
     def api_get_book(isbn: str):
@@ -146,7 +170,11 @@ def create_app(
         if not isbn or not title or not author:
             return jsonify({"error": "BAD_REQUEST", "message": "Missing required fields."}), 400
 
-        ok, res_isbn, err = admin.add_book(isbn, title, author, publisher, year, status, token)
+        ok, res_isbn, err = admin.add_book(
+            isbn, title, author, publisher, year, status, token,
+            subject=data.get("subject", "General"),
+            difficulty=data.get("difficulty", "Intermediate")
+        )
         if not ok:
             if err == "DUPLICATE_ISBN":
                 return jsonify({"error": "DUPLICATE_ISBN", "message": "Book with this ISBN already exists."}), 409
@@ -168,7 +196,11 @@ def create_app(
         publisher = data.get("publisher", "")
         year = int(data.get("year", 2026))
 
-        ok, err = admin.edit_book(isbn, title, author, publisher, year, token)
+        ok, err = admin.edit_book(
+            isbn, title, author, publisher, year, token,
+            subject=data.get("subject"),
+            difficulty=data.get("difficulty")
+        )
         if not ok:
             if err == "BOOK_NOT_FOUND":
                 return jsonify({"error": "NOT_FOUND", "message": "Book not found."}), 404
@@ -344,7 +376,7 @@ def create_app(
         _, user, _ = auth.validate_session(token)
         q = request.args.get("q", "").strip()
         search_type = request.args.get("type", "title")
-        page = int(request.args.get("page", 1))
+        page = _int_arg("page", 1)
 
         search_result = None
         if q:
@@ -352,12 +384,25 @@ def create_app(
             if ok:
                 search_result = result
 
+        # Without a search term the home page shows the full catalog with browse filters
+        browse_result = None
+        if not q:
+            browse_result = catalog.browse(
+                subject=request.args.get("subject", ""),
+                difficulty=request.args.get("difficulty", ""),
+                availability=request.args.get("availability", ""),
+                sort=request.args.get("sort", "title"),
+                page=page,
+            )
+
         return render_template(
             "index.html",
             user=user,
             query=q,
             search_type=search_type,
-            search_result=search_result
+            search_result=search_result,
+            browse_result=browse_result,
+            facets=catalog.get_facets()
         )
 
     @app.route("/book/<isbn>", methods=["GET"])
