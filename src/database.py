@@ -73,7 +73,22 @@ CREATE TABLE IF NOT EXISTS sessions (
     FOREIGN KEY(member_id) REFERENCES members(id) ON DELETE CASCADE
 );
 
+-- Circulation: who has borrowed which title and when it is due back.
+-- returned_at IS NULL means the loan is still open.
+CREATE TABLE IF NOT EXISTS loans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    isbn TEXT NOT NULL,
+    member_id TEXT NOT NULL,
+    checked_out_at REAL NOT NULL,
+    due_at REAL NOT NULL,
+    returned_at REAL,
+    FOREIGN KEY(isbn) REFERENCES titles(isbn) ON DELETE CASCADE,
+    FOREIGN KEY(member_id) REFERENCES members(id) ON DELETE CASCADE
+);
+
 -- Indexes for performance (LRG-NF-001, DS-PERF-01)
+CREATE INDEX IF NOT EXISTS idx_loans_open ON loans(isbn, returned_at);
+CREATE INDEX IF NOT EXISTS idx_loans_member ON loans(member_id, returned_at);
 CREATE INDEX IF NOT EXISTS idx_titles_title ON titles(title);
 CREATE INDEX IF NOT EXISTS idx_titles_author ON titles(author);
 CREATE INDEX IF NOT EXISTS idx_holds_active ON holds(isbn, member_id, state);
@@ -89,6 +104,25 @@ CREATE INDEX IF NOT EXISTS idx_titles_difficulty ON titles(difficulty);
 """
 
 DIFFICULTY_LEVELS = ("Beginner", "Intermediate", "Advanced")
+
+DEFAULT_LOAN_DAYS = 14
+
+# How long ago each backfilled demo loan started (cycled). With a 14-day loan period,
+# about a quarter come out overdue and a few are due within days, which makes the
+# librarian's loan view realistic.
+BACKFILL_DAYS_AGO = (2, 5, 9, 12, 15, 19, 7, 11)
+
+# Fictional demo students (not real people) used as borrowers for the seeded loans.
+DEMO_BORROWERS = [
+    ("PES1UG24CS101", "Aarav Mehta", "aarav.mehta@students.example.edu"),
+    ("PES1UG24CS102", "Diya Nair", "diya.nair@students.example.edu"),
+    ("PES1UG24CS103", "Rohan Kulkarni", "rohan.kulkarni@students.example.edu"),
+    ("PES1UG24CS104", "Ananya Rao", "ananya.rao@students.example.edu"),
+    ("PES1UG24CS105", "Kabir Singh", "kabir.singh@students.example.edu"),
+    ("PES1UG24CS106", "Meera Iyer", "meera.iyer@students.example.edu"),
+    ("PES1UG24CS107", "Vihaan Shetty", "vihaan.shetty@students.example.edu"),
+    ("PES1UG24CS108", "Sara Thomas", "sara.thomas@students.example.edu"),
+]
 
 # Subject and difficulty for the seeded titles, used for browsing without a search term.
 TITLE_CLASSIFICATION = {
@@ -167,6 +201,56 @@ class Database:
             if cur.fetchone()[0] == 0:
                 self._seed_data(conn)
             self._load_extended_catalog(conn)
+            self._load_demo_borrowers(conn)
+            self._backfill_loans(conn)
+
+    @staticmethod
+    def _load_demo_borrowers(conn: sqlite3.Connection) -> None:
+        """Fictional student accounts so the demo has a realistic spread of borrowers."""
+        conn.executemany(
+            "INSERT OR IGNORE INTO members (id, name, email, role, failed_attempts, locked_until) "
+            "VALUES (?, ?, ?, 'student', 0, 0);",
+            DEMO_BORROWERS
+        )
+        conn.commit()
+
+    @staticmethod
+    def _backfill_loans(conn: sqlite3.Connection) -> None:
+        """Give every checked-out title without an open loan a borrower and due date,
+        so the librarian can see who has it. Runs on startup; titles that already
+        have an open loan are left alone, so it is safe to repeat."""
+        rows = conn.execute(
+            """
+            SELECT t.isbn FROM titles t
+            WHERE t.status = 'CheckedOut'
+              AND NOT EXISTS (SELECT 1 FROM loans l WHERE l.isbn = t.isbn AND l.returned_at IS NULL)
+            ORDER BY t.isbn
+            """
+        ).fetchall()
+        if not rows:
+            return
+        borrowers = [r[0] for r in conn.execute(
+            "SELECT id FROM members WHERE role = 'student' ORDER BY id"
+        )]
+        if not borrowers:
+            return
+        now = time.time()
+        day = 86400
+        for i, row in enumerate(rows):
+            isbn = row[0]
+            # Nobody borrows a book they are still waiting in the hold queue for
+            waiting = {r[0] for r in conn.execute(
+                "SELECT member_id FROM holds WHERE isbn = ? AND state IN ('Active', 'Ready')", (isbn,)
+            )}
+            candidates = [b for b in borrowers if b not in waiting] or borrowers
+            member_id = candidates[i % len(candidates)]
+            days_ago = BACKFILL_DAYS_AGO[i % len(BACKFILL_DAYS_AGO)]
+            checked_out = now - days_ago * day
+            conn.execute(
+                "INSERT INTO loans (isbn, member_id, checked_out_at, due_at) VALUES (?, ?, ?, ?);",
+                (isbn, member_id, checked_out, checked_out + DEFAULT_LOAN_DAYS * day)
+            )
+        conn.commit()
 
     @staticmethod
     def _load_extended_catalog(conn: sqlite3.Connection) -> None:

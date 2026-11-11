@@ -13,6 +13,7 @@ from src.catalog_search import CatalogSearchService
 from src.reservation_manager import ReservationManager
 from src.audit import AuditService
 from src.auth import AuthenticationManager
+from src.loan_manager import LoanManager
 
 
 class LibrarianAdminService:
@@ -23,12 +24,16 @@ class LibrarianAdminService:
         catalog_service: CatalogSearchService,
         reservation_manager: ReservationManager,
         audit_service: AuditService,
-        auth_manager: AuthenticationManager
+        auth_manager: AuthenticationManager,
+        loan_manager: Optional[LoanManager] = None
     ):
         self.catalog = catalog_service
         self.reservation = reservation_manager
         self.audit = audit_service
         self.auth = auth_manager
+        self.loans = loan_manager or LoanManager(
+            reservation_manager.db, audit_service, reservation_manager.fine_manager
+        )
 
     def _verify_librarian(self, token: Optional[str]) -> Tuple[bool, Optional[Dict[str, Any]], Optional[str]]:
         """Verify session and enforce Head Librarian role (LRG-F-012, LRG-SR-003)."""
@@ -109,3 +114,35 @@ class LibrarianAdminService:
 
         logs = self.audit.get_logs(limit=limit)
         return True, logs, None
+
+    def get_current_loans(
+        self,
+        token: Optional[str],
+        status_filter: str = "all",
+        query: str = ""
+    ) -> Tuple[bool, Optional[List[Dict[str, Any]]], Optional[str]]:
+        """Librarian endpoint: who has each checked-out title and when it is due back."""
+        auth_ok, user, err = self._verify_librarian(token)
+        if not auth_ok:
+            return False, None, err
+        return True, self.loans.get_current_loans(status_filter, query), None
+
+    def get_loan_summary(self, token: Optional[str]) -> Tuple[bool, Optional[Dict[str, int]], Optional[str]]:
+        """Librarian endpoint: counts of checked-out, overdue and due-soon titles."""
+        auth_ok, user, err = self._verify_librarian(token)
+        if not auth_ok:
+            return False, None, err
+        return True, self.loans.get_summary(), None
+
+    def checkout_book(
+        self,
+        isbn: str,
+        member_id: str,
+        token: Optional[str],
+        loan_days: int = 14
+    ) -> Tuple[bool, Optional[Dict[str, Any]], Optional[str]]:
+        """Librarian endpoint: lend an Available title to a student."""
+        auth_ok, user, err = self._verify_librarian(token)
+        if not auth_ok:
+            return False, None, err
+        return self.loans.checkout(isbn, member_id, user["member_id"], loan_days)

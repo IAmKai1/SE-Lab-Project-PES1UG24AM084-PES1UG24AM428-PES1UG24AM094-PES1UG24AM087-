@@ -9,7 +9,133 @@
         <p>Restricted to Head Librarian credentials (<code>{{ user.member_id }}</code>). Enforces server-side RBAC (LRG-F-012, LRG-SR-003).</p>
     </header>
 
-    <div class="admin-grid">
+    <!-- Current Loans: who has what and when it is due back -->
+    <section class="admin-card" aria-labelledby="loans-heading">
+        <h2 id="loans-heading">Current Loans: Who Has What</h2>
+        <p>Every checked-out title with its borrower, checkout date and due date. Overdue loans are listed first.</p>
+
+        <div class="loan-stats" role="list">
+            <a role="listitem" class="loan-stat {% if loan_filter == 'all' %}is-active{% endif %}" href="{{ url_for('ui_admin_dashboard', loans='all', lq=loan_query) }}#loans-heading">
+                <span class="loan-stat-value">{{ loan_summary.checked_out }}</span>
+                <span class="loan-stat-label">Checked out</span>
+            </a>
+            <a role="listitem" class="loan-stat loan-stat-overdue {% if loan_filter == 'overdue' %}is-active{% endif %}" href="{{ url_for('ui_admin_dashboard', loans='overdue', lq=loan_query) }}#loans-heading">
+                <span class="loan-stat-value">{{ loan_summary.overdue }}</span>
+                <span class="loan-stat-label">Overdue</span>
+            </a>
+            <a role="listitem" class="loan-stat loan-stat-soon {% if loan_filter == 'due_soon' %}is-active{% endif %}" href="{{ url_for('ui_admin_dashboard', loans='due_soon', lq=loan_query) }}#loans-heading">
+                <span class="loan-stat-value">{{ loan_summary.due_soon }}</span>
+                <span class="loan-stat-label">Due within 3 days</span>
+            </a>
+        </div>
+
+        <form method="GET" action="{{ url_for('ui_admin_dashboard') }}" class="loan-search" role="search" aria-label="Search loans">
+            <input type="hidden" name="loans" value="{{ loan_filter }}">
+            <label for="loan-search-input" class="sr-only">Search loans by title, ISBN, borrower name or ID</label>
+            <input type="search" id="loan-search-input" name="lq" value="{{ loan_query }}" class="form-control"
+                   placeholder="Search by title, ISBN, student name or ID...">
+            <button type="submit" class="btn btn-primary">Search</button>
+            {% if loan_query or loan_filter != 'all' %}
+                <a href="{{ url_for('ui_admin_dashboard') }}#loans-heading" class="btn btn-outline-sm">Clear</a>
+            {% endif %}
+        </form>
+
+        <p class="results-meta">
+            Showing {{ loans | length }} loan(s){% if loan_filter == 'overdue' %} that are overdue{% elif loan_filter == 'due_soon' %} due within 3 days{% endif %}{% if loan_query %} matching "{{ loan_query }}"{% endif %}.
+        </p>
+
+        {% if loans %}
+        <div class="table-responsive">
+            <table class="data-table loans-table" aria-label="Current loans">
+                <thead>
+                    <tr>
+                        <th scope="col">Book</th>
+                        <th scope="col">Borrowed by</th>
+                        <th scope="col">Checked out</th>
+                        <th scope="col">Due back</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Holds waiting</th>
+                        <th scope="col"><span class="sr-only">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loans %}
+                    <tr class="{% if loan.is_overdue %}row-overdue{% endif %}">
+                        <td>
+                            <a href="{{ url_for('ui_book_detail', isbn=loan.isbn) }}"><strong>{{ loan.title }}</strong></a><br>
+                            <code class="small-code">{{ loan.isbn }}</code>
+                        </td>
+                        <td>
+                            {% if loan.loan_id %}
+                                <strong>{{ loan.member_name }}</strong><br>
+                                <code class="small-code">{{ loan.member_id }}</code><br>
+                                <a href="mailto:{{ loan.member_email }}" class="small-link">{{ loan.member_email }}</a>
+                            {% else %}
+                                <span class="text-muted">Not recorded</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ loan.checked_out_at | fmt_date }}</td>
+                        <td><strong>{{ loan.due_at | fmt_date }}</strong></td>
+                        <td>
+                            {% if not loan.loan_id %}
+                                <span class="loan-badge">Unknown</span>
+                            {% elif loan.is_overdue %}
+                                <span class="loan-badge loan-badge-overdue">Overdue {{ loan.overdue_days }} day{{ 's' if loan.overdue_days != 1 }}</span>
+                                <div class="small-note">Est. fine ${{ "%.2f"|format(loan.est_fine) }}</div>
+                            {% elif loan.due_soon %}
+                                <span class="loan-badge loan-badge-soon">{% if loan.days_left == 0 %}Due today{% else %}Due in {{ loan.days_left }} day{{ 's' if loan.days_left != 1 }}{% endif %}</span>
+                            {% else %}
+                                <span class="loan-badge loan-badge-ok">{{ loan.days_left }} days left</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ loan.queue_length }}</td>
+                        <td>
+                            <button type="button" class="btn btn-outline-sm" onclick="markReturned('{{ loan.isbn }}')"
+                                    aria-label="Mark {{ loan.title }} returned">Mark returned</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="empty-state-card" role="status">
+                <h3>No loans to show</h3>
+                <p>{% if loan_query or loan_filter != 'all' %}Nothing matches this filter. <a href="{{ url_for('ui_admin_dashboard') }}#loans-heading">Show all loans</a>.{% else %}No titles are checked out right now.{% endif %}</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <div class="admin-grid mt-4">
+        <!-- Check Out Form -->
+        <section class="admin-card">
+            <h2>Check Out Book to Student</h2>
+            <p>Lend an Available title. If the student had a hold Ready for this title, it is marked fulfilled.</p>
+            <form id="checkout-form" onsubmit="event.preventDefault(); checkoutBook();" class="admin-form">
+                <div class="form-group">
+                    <label for="checkout-isbn">Book ISBN:</label>
+                    <input type="text" id="checkout-isbn" placeholder="e.g. 978-0134494166" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="checkout-member">Student member ID:</label>
+                    <input type="text" id="checkout-member" list="student-ids" placeholder="e.g. PES1UG24AM084" required class="form-control" autocomplete="off">
+                    <datalist id="student-ids">
+                        {% for s in students %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label for="checkout-days">Loan period:</label>
+                    <select id="checkout-days" class="form-control">
+                        <option value="7">7 days</option>
+                        <option value="14" selected>14 days (standard)</option>
+                        <option value="21">21 days</option>
+                        <option value="28">28 days</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-accent">Check Out</button>
+            </form>
+        </section>
+
         <!-- Return Book Form -->
         <section class="admin-card">
             <h2>Process Book Return & Hold Promotion (UC-06, UC-07)</h2>
@@ -124,16 +250,48 @@
 </div>
 
 <script>
-function markReturned() {
-    const isbn = document.getElementById('return-isbn').value.trim();
+function checkoutBook() {
+    const payload = {
+        isbn: document.getElementById('checkout-isbn').value.trim(),
+        memberId: document.getElementById('checkout-member').value.trim(),
+        days: parseInt(document.getElementById('checkout-days').value) || 14
+    };
+    fetch('/api/v1/loans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(res => {
+        if (res.status === 201) {
+            const due = new Date(res.body.dueAt * 1000).toLocaleDateString();
+            alert('Checked out "' + res.body.title + '" to ' + res.body.memberName + '.\nDue back: ' + due +
+                  (res.body.holdFulfilled ? '\nTheir hold on this title is now fulfilled.' : ''));
+            window.location.reload();
+        } else {
+            alert('Could not check out: ' + (res.body.message || res.body.error));
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+
+function markReturned(isbnArg) {
+    const isbn = (typeof isbnArg === 'string' ? isbnArg : document.getElementById('return-isbn').value).trim();
     if (!isbn) return;
+    if (typeof isbnArg === 'string' && !confirm('Mark ' + isbn + ' as returned?')) return;
     fetch('/api/v1/titles/' + encodeURIComponent(isbn) + '/return', {
         method: 'POST'
     })
     .then(r => r.json().then(data => ({ status: r.status, body: data })))
     .then(res => {
         if (res.status === 200) {
-            alert('Title marked Available!\nPromoted hold recipient: ' + (res.body.holdReadyFor || 'None (no queue)'));
+            let msg = 'Title marked Available!';
+            if (res.body.returnedByName) {
+                msg += '\nReturned by: ' + res.body.returnedByName + ' (' + res.body.returnedBy + ')';
+                if (res.body.overdueDays > 0) msg += '\nReturned ' + res.body.overdueDays + ' day(s) late.';
+            }
+            msg += '\nPromoted hold recipient: ' + (res.body.holdReadyFor || 'None (no queue)');
+            alert(msg);
             window.location.reload();
         } else {
             alert('Error: ' + (res.body.message || res.body.error));

@@ -5,6 +5,7 @@ Fulfills SAD section 4.3 API design and SRS requirements.
 
 import os
 import time
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 from flask import (
     Flask,
@@ -24,6 +25,7 @@ from src.notification import NotificationService
 from src.fine_manager import FineManager
 from src.reservation_manager import ReservationManager
 from src.admin import LibrarianAdminService
+from src.loan_manager import LoanManager
 from src.security import RateLimiter, validate_isbn, sanitize_input, sanitize_search_query
 
 
@@ -44,7 +46,8 @@ def create_app(
     notification = NotificationService(db, audit, simulate_smtp_failure=simulate_smtp_failure)
     fine_mgr = FineManager(db, audit)
     reservation = ReservationManager(db, audit, notification, fine_mgr)
-    admin = LibrarianAdminService(catalog, reservation, audit, auth)
+    loan_mgr = LoanManager(db, audit, fine_mgr)
+    admin = LibrarianAdminService(catalog, reservation, audit, auth, loan_manager=loan_mgr)
     limiter = RateLimiter(max_requests=60, window_seconds=60.0)
 
     # Attach components to app context for testing & access
@@ -56,7 +59,12 @@ def create_app(
     app.fine_mgr = fine_mgr
     app.reservation = reservation
     app.admin = admin
+    app.loans = loan_mgr
     app.limiter = limiter
+
+    @app.template_filter("fmt_date")
+    def fmt_date(ts: Optional[float]) -> str:
+        return datetime.fromtimestamp(ts).strftime("%d %b %Y") if ts else "—"
 
     START_TIME = time.time()
 
@@ -272,6 +280,44 @@ def create_app(
 
         return jsonify(res), 200
 
+    # Circulation: who has what, and checkout (Head Librarian only)
+    @app.route("/api/v1/loans", methods=["GET"])
+    def api_current_loans():
+        token = _get_token()
+        ok, loans, err = admin.get_current_loans(
+            token,
+            status_filter=request.args.get("filter", "all"),
+            query=sanitize_search_query(request.args.get("q", ""))
+        )
+        if not ok:
+            return jsonify({"error": "FORBIDDEN", "message": "Librarian role required."}), 403
+        return jsonify({"loans": loans, "summary": loan_mgr.get_summary()}), 200
+
+    @app.route("/api/v1/loans", methods=["POST"])
+    def api_checkout():
+        token = _get_token()
+        data = request.get_json(silent=True) or {}
+        try:
+            loan_days = int(data.get("days", 14))
+        except (TypeError, ValueError):
+            loan_days = 14
+        ok, loan, err = admin.checkout_book(
+            str(data.get("isbn", "")), str(data.get("memberId", "")), token, loan_days=loan_days
+        )
+        if ok:
+            return jsonify(loan), 201
+        if err in ("FORBIDDEN", "UNAUTHORIZED", "NO_SESSION_PROVIDED", "INVALID_SESSION", "SESSION_EXPIRED_IDLE"):
+            return jsonify({"error": "FORBIDDEN", "message": "Librarian role required."}), 403
+        messages = {
+            "TITLE_NOT_FOUND": (404, "No title with that ISBN."),
+            "MEMBER_NOT_FOUND": (404, "No student with that member ID."),
+            "TITLE_ALREADY_CHECKED_OUT": (409, "This title is already checked out."),
+            "RESERVED_FOR_ANOTHER_MEMBER": (409, "This title is Ready for pickup by another member's hold."),
+            "BORROWER_BLOCKED_UNPAID_FINES": (409, "Student has unpaid fines above the limit and cannot borrow."),
+        }
+        status, message = messages.get(err, (400, err))
+        return jsonify({"error": err, "message": message}), status
+
     @app.route("/api/v1/reports/demand", methods=["GET"])
     def api_demand_report():
         token = _get_token()
@@ -444,11 +490,18 @@ def create_app(
 
         demand_rep = reservation.get_demand_report()
         recent_audit = audit.get_logs(limit=25)
+        loan_filter = request.args.get("loans", "all")
+        loan_query = sanitize_search_query(request.args.get("lq", ""))
         return render_template(
             "librarian_dashboard.html",
             user=user,
             demand_report=demand_rep,
-            audit_logs=recent_audit
+            audit_logs=recent_audit,
+            loans=loan_mgr.get_current_loans(loan_filter, loan_query),
+            loan_summary=loan_mgr.get_summary(),
+            loan_filter=loan_filter if loan_filter in ("all", "overdue", "due_soon") else "all",
+            loan_query=loan_query,
+            students=loan_mgr.list_students()
         )
 
     @app.route("/login", methods=["GET", "POST"])

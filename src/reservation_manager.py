@@ -17,6 +17,7 @@ from src.database import Database
 from src.audit import AuditService
 from src.notification import NotificationService
 from src.fine_manager import FineManager
+from src.loan_manager import close_open_loan
 
 
 MAX_ACTIVE_HOLDS = 5
@@ -217,6 +218,9 @@ class ReservationManager:
                 # Send hold-ready notification (LRG-F-030)
                 self.notification.notify_hold_ready(ready_member_id, isbn)
 
+            # Close the borrower's open loan (if one is recorded)
+            closed_loan = close_open_loan(conn, isbn, now)
+
             # Mark title status Available
             conn.execute("UPDATE titles SET status = 'Available' WHERE isbn = ?", (isbn,))
             conn.commit()
@@ -232,7 +236,10 @@ class ReservationManager:
                 "isbn": isbn,
                 "status": "Available",
                 "holdReadyFor": ready_member_id,
-                "promotedHoldId": first_hold["id"] if first_hold else None
+                "promotedHoldId": first_hold["id"] if first_hold else None,
+                "returnedBy": closed_loan["memberId"] if closed_loan else None,
+                "returnedByName": closed_loan["memberName"] if closed_loan else None,
+                "overdueDays": closed_loan["overdueDays"] if closed_loan else 0
             }
             return True, result, None
 
